@@ -1,8 +1,5 @@
 FROM ekidd/rust-musl-builder:stable as builder
 
-# RUN adduser -D hoc
-RUN useradd -u 10001 dummy
-
 # create new cargo project
 RUN USER=rust cargo init --bin
 # copy build config
@@ -17,9 +14,14 @@ COPY ./src ./src
 # build source code
 RUN cargo build --release
 
+
+# create /etc/password for rootless scratch container
+FROM alpine:latest as user_builder
+RUN USER=root adduser -D -u 10001 dummy
+
 FROM scratch
 
-COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=user_builder /etc/passwd /etc/passwd
 USER dummy
 
 COPY --from=builder /home/rust/src/target/x86_64-unknown-linux-musl/release/gitache /
