@@ -1,0 +1,15 @@
+---
+kind: pipeline
+name: build
+
+steps:
+  - name: docker
+    image: plugins/docker
+    ref:
+      - refs/heads/master
+      - refs/tags/v*
+---
+kind: signature
+hmac: 1cc0785083f8c74e5fab2c191c65e6ca155a5fbd7b18a559f729b1426fb9511d
+
+...
