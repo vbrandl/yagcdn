@@ -106,7 +106,7 @@ fn main() -> Result<()> {
             .data(Client::new())
             .wrap(middleware::Logger::default())
             .route(
-                "/github/{user}/{repo}/{commit}/{file}",
+                "/github/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<Github>),
             )
         // .default_service(web::resource("").route(web::get().to_async(p404)))
