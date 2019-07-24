@@ -1,7 +1,7 @@
 FROM ekidd/rust-musl-builder:stable as builder
 
 # RUN adduser -D hoc
-RUN useradd -U 10001 dummy
+RUN useradd -u 10001 dummy
 
 # create new cargo project
 RUN USER=rust cargo init --bin
