@@ -15,7 +15,7 @@ use crate::{
 };
 use actix_web::{
     http::header::{self, CacheControl, CacheDirective, Expires, LOCATION},
-    middleware, web, App, Error as AError, HttpResponse, HttpServer,
+    middleware, web, App, Error, HttpResponse, HttpServer,
 };
 use awc::{http::StatusCode, Client};
 use futures::Future;
@@ -24,7 +24,7 @@ use std::time::{Duration, SystemTime};
 fn proxy_file<T: Service>(
     client: web::Data<Client>,
     data: web::Path<FilePath>,
-) -> Box<dyn Future<Item = HttpResponse, Error = AError>> {
+) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
     Box::new(
         client
             .get(&T::raw_url(
@@ -57,7 +57,7 @@ fn proxy_file<T: Service>(
 fn redirect<T: Service>(
     client: web::Data<Client>,
     data: web::Path<FilePath>,
-) -> Box<dyn Future<Item = HttpResponse, Error = AError>> {
+) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
     Box::new(
         client
             .get(&T::api_url(&data))
@@ -84,9 +84,9 @@ fn redirect<T: Service>(
                         })
                         .from_err(),
                 )
-                    as Box<dyn Future<Item = HttpResponse, Error = AError>>,
+                    as Box<dyn Future<Item = HttpResponse, Error = Error>>,
                 code => Box::new(futures::future::ok(HttpResponse::build(code).finish()))
-                    as Box<dyn Future<Item = HttpResponse, Error = AError>>,
+                    as Box<dyn Future<Item = HttpResponse, Error = Error>>,
             }),
     )
 }
@@ -94,7 +94,7 @@ fn redirect<T: Service>(
 fn handle_request<T: Service>(
     client: web::Data<Client>,
     data: web::Path<FilePath>,
-) -> Box<dyn Future<Item = HttpResponse, Error = AError>> {
+) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
     if data.commit.len() == 40 {
         proxy_file::<T>(client, data)
     } else {
