@@ -11,10 +11,10 @@ mod statics;
 use crate::{
     data::FilePath,
     error::Result,
-    service::{ApiResponse, Bitbucket, Github, Service},
+    service::{Bitbucket, GitLab, Github, Service},
 };
 use actix_web::{
-    http::header::{self, CacheControl, CacheDirective, Expires, LOCATION},
+    http::header::{self, CacheControl, CacheDirective, Expires},
     middleware, web, App, Error, HttpResponse, HttpServer,
 };
 use awc::{http::StatusCode, Client};
@@ -64,30 +64,7 @@ fn redirect<T: Service>(
             .header(header::USER_AGENT, statics::USER_AGENT.as_str())
             .send()
             .from_err()
-            .and_then(move |mut response| match response.status() {
-                StatusCode::OK => Box::new(
-                    response
-                        .json::<T::Response>()
-                        .map(move |resp| {
-                            HttpResponse::SeeOther()
-                                .header(
-                                    LOCATION,
-                                    T::redirect_url(
-                                        &data.user,
-                                        &data.repo,
-                                        resp.commit_ref(),
-                                        &data.file,
-                                    )
-                                    .as_str(),
-                                )
-                                .finish()
-                        })
-                        .from_err(),
-                )
-                    as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-                code => Box::new(futures::future::ok(HttpResponse::build(code).finish()))
-                    as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-            }),
+            .and_then(move |response| T::request_head(response, data, client)),
     )
 }
 
@@ -104,7 +81,7 @@ fn handle_request<T: Service>(
 
 fn main() -> Result<()> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=trace");
-    env_logger::init();
+    pretty_env_logger::init();
     openssl_probe::init_ssl_cert_env_vars();
 
     Ok(HttpServer::new(move || {
@@ -119,9 +96,11 @@ fn main() -> Result<()> {
                 "/bitbucket/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<Bitbucket>),
             )
-        // .default_service(web::resource("").route(web::get().to_async(p404)))
+            .route(
+                "/gitlab/{user}/{repo}/{commit}/{file:.*}",
+                web::get().to_async(handle_request::<GitLab>),
+            )
     })
-    // .workers(OPT.workers)
     .bind("0.0.0.0:8080")?
     .run()?)
 }
