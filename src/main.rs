@@ -105,6 +105,7 @@ fn handle_request<T: Service>(
 fn main() -> Result<()> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=trace");
     env_logger::init();
+    openssl_probe::init_ssl_cert_env_vars();
 
     Ok(HttpServer::new(move || {
         App::new()
