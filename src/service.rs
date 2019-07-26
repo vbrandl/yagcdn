@@ -1,15 +1,22 @@
 use crate::data::FilePath;
-// use actix_web::Error;
-// use awc::Client;
-// use futures::Future;
-// use std::borrow::Cow;
+
+pub(crate) trait ApiResponse {
+    fn commit_ref(&self) -> &str;
+}
 
 #[derive(Deserialize)]
 pub(crate) struct GitHubApiResponse {
     pub(crate) sha: String,
 }
 
+impl ApiResponse for GitHubApiResponse {
+    fn commit_ref(&self) -> &str {
+        &self.sha
+    }
+}
+
 pub(crate) trait Service {
+    type Response: for<'de> serde::Deserialize<'de> + ApiResponse + 'static;
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String;
     fn api_url(path: &FilePath) -> String;
     fn redirect_url(user: &str, repo: &str, commit: &str, file: &str) -> String;
@@ -18,6 +25,8 @@ pub(crate) trait Service {
 pub(crate) struct Github;
 
 impl Service for Github {
+    type Response = GitHubApiResponse;
+
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
         format!(
             "https://raw.githubusercontent.com/{}/{}/{}/{}",

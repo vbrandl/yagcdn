@@ -11,7 +11,7 @@ mod statics;
 use crate::{
     data::FilePath,
     error::Result,
-    service::{GitHubApiResponse, Github, Service},
+    service::{ApiResponse, Bitbucket, Github, Service},
 };
 use actix_web::{
     http::header::{self, CacheControl, CacheDirective, Expires, LOCATION},
@@ -67,13 +67,18 @@ fn redirect<T: Service>(
             .and_then(move |mut response| match response.status() {
                 StatusCode::OK => Box::new(
                     response
-                        .json::<GitHubApiResponse>()
+                        .json::<T::Response>()
                         .map(move |resp| {
                             HttpResponse::SeeOther()
                                 .header(
                                     LOCATION,
-                                    T::redirect_url(&data.user, &data.repo, &resp.sha, &data.file)
-                                        .as_str(),
+                                    T::redirect_url(
+                                        &data.user,
+                                        &data.repo,
+                                        resp.commit_ref(),
+                                        &data.file,
+                                    )
+                                    .as_str(),
                                 )
                                 .finish()
                         })
