@@ -1,0 +1,6 @@
+version: '2'
+
+services:
+  gitache:
+    image: local/gitache:latest
+    restart: always
