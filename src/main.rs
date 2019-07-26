@@ -114,6 +114,10 @@ fn main() -> Result<()> {
                 "/github/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<Github>),
             )
+            .route(
+                "/bitbucket/{user}/{repo}/{commit}/{file:.*}",
+                web::get().to_async(handle_request::<Bitbucket>),
+            )
         // .default_service(web::resource("").route(web::get().to_async(p404)))
     })
     // .workers(OPT.workers)
