@@ -21,6 +21,8 @@ RUN USER=root adduser -D -u 10001 dummy
 
 FROM scratch
 
+# copy certificates
+COPY --from=linuxkit/ca-certificates:v0.7 / /
 COPY --from=user_builder /etc/passwd /etc/passwd
 USER dummy
 
