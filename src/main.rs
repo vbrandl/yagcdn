@@ -121,6 +121,6 @@ fn main() -> Result<()> {
         // .default_service(web::resource("").route(web::get().to_async(p404)))
     })
     // .workers(OPT.workers)
-    .bind("127.0.0.1:8080")?
+    .bind("0.0.0.0:8080")?
     .run()?)
 }
