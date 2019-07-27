@@ -15,6 +15,8 @@ COPY ./src ./src
 # build source code
 RUN cargo build --release
 
+RUN strip ./target/x86_64-unknown-linux-musl/release/gitache
+
 
 # create /etc/password for rootless scratch container
 FROM alpine:latest as user_builder
