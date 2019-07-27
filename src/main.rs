@@ -17,12 +17,11 @@ use crate::{
     statics::FAVICON,
 };
 use actix_web::{
-    http::header::{self, CacheControl, CacheDirective, Expires},
+    http::header::{self, CacheControl, CacheDirective},
     middleware, web, App, Error, HttpResponse, HttpServer,
 };
 use awc::{http::StatusCode, Client};
 use futures::Future;
-use std::time::{Duration, SystemTime};
 
 fn proxy_file<T: Service>(
     client: web::Data<Client>,
@@ -42,13 +41,11 @@ fn proxy_file<T: Service>(
             .and_then(move |response| match response.status() {
                 StatusCode::OK => {
                     let mime = mime_guess::guess_mime_type(&data.file);
-                    let expiration = SystemTime::now() + Duration::from_secs(2_592_000_000);
                     Ok(HttpResponse::Ok()
                         .content_type(mime.to_string().as_str())
-                        .set(Expires(expiration.into()))
                         .set(CacheControl(vec![
-                            CacheDirective::MaxAge(2_592_000_000),
                             CacheDirective::Public,
+                            CacheDirective::MaxAge(2_592_000_000),
                         ]))
                         .streaming(response))
                 }
