@@ -19,6 +19,7 @@ use crate::{
     service::{Bitbucket, GitLab, Github, Service},
     statics::{FAVICON, OPT},
 };
+use actix_files;
 use actix_web::{
     http::header::{self, CacheControl, CacheDirective},
     middleware, web, App, Error, HttpResponse, HttpServer,
@@ -115,6 +116,7 @@ fn main() -> Result<()> {
                 "/gitlab/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<GitLab>),
             )
+            .service(actix_files::Files::new("/", "public").index_file("index.html"))
     })
     .workers(OPT.workers)
     .bind((OPT.interface, OPT.port))?
