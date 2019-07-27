@@ -2,10 +2,11 @@ module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
 import Data exposing (Url, toHost, toUrl)
-import Html exposing (Html, br, div, input, table, td, text, tr)
+import Html exposing (Html, br, div, h1, input, table, td, text, tr)
 import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onInput)
 import Parse exposing (parseUrl)
+import Ribbon exposing (ribbon)
 
 
 type Msg
@@ -82,14 +83,20 @@ myStyle2 =
 
 view : Model -> Html Msg
 view state =
-    div myStyle
-        [ input (myStyle2 [ placeholder "URL to parse", value state.url, onInput UrlChange ]) []
-        , div myStyle
-            [ text "Parsed URL: "
-            , br [] []
-            , renderMUrl state.parsed
+    div []
+        [ h1 []
+            [ text "Gitache" ]
+        , div
+            myStyle
+            [ ribbon
+            , input (myStyle2 [ placeholder "URL to parse", value state.url, onInput UrlChange ]) []
+            , div myStyle
+                [ text "Parsed URL: "
+                , br [] []
+                , renderMUrl state.parsed
+                ]
+            , input (myStyle2 [ placeholder "https://host/<service>/<user>/<repo>/<gitref>/<file>", disabled True, value (displayMUrl state.parsed) ]) []
             ]
-        , input (myStyle2 [ placeholder "https://host/<service>/<user>/<repo>/<gitref>/<file>", disabled True, value (displayMUrl state.parsed) ]) []
         ]
 
 
