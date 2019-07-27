@@ -1,4 +1,6 @@
 #[macro_use]
+extern crate actix_web;
+#[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate serde_derive;
@@ -12,6 +14,7 @@ use crate::{
     data::FilePath,
     error::Result,
     service::{Bitbucket, GitLab, Github, Service},
+    statics::FAVICON,
 };
 use actix_web::{
     http::header::{self, CacheControl, CacheDirective, Expires},
@@ -79,6 +82,17 @@ fn handle_request<T: Service>(
     }
 }
 
+#[get("/favicon.ico")]
+fn favicon32() -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type("image/png")
+        .set(CacheControl(vec![
+            CacheDirective::Public,
+            CacheDirective::MaxAge(2_592_000_000),
+        ]))
+        .body(FAVICON)
+}
+
 fn main() -> Result<()> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=trace");
     pretty_env_logger::init();
@@ -88,6 +102,7 @@ fn main() -> Result<()> {
         App::new()
             .data(Client::new())
             .wrap(middleware::Logger::default())
+            .service(favicon32)
             .route(
                 "/github/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<Github>),
