@@ -10,6 +10,7 @@ RUN cargo build --release
 # delete build cache to prevent caching issues later on
 RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/gitache-*
 
+COPY ./static ./static
 COPY ./src ./src
 # build source code
 RUN cargo build --release
