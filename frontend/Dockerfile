@@ -1,6 +1,6 @@
 FROM node:alpine
 
-RUN npm install -g elm elm-test
+RUN yarn global add elm elm-test
 
 COPY ./elm.json ./elm.json
 COPY ./src ./src
