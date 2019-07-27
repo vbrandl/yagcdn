@@ -61,9 +61,13 @@ impl ApiResponse for GitLabApiResponse {
 
 pub(crate) trait Service {
     type Response: for<'de> serde::Deserialize<'de> + ApiResponse + 'static;
+
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String;
+
     fn api_url(path: &FilePath) -> String;
+
     fn redirect_url(user: &str, repo: &str, commit: &str, file: &str) -> String;
+
     fn request_head<S>(
         mut response: ClientResponse<S>,
         data: web::Path<FilePath>,
@@ -100,6 +104,17 @@ pub(crate) trait Service {
 
 pub(crate) struct Github;
 
+impl Github {
+    fn auth_query() -> Option<String> {
+        use std::env::var;
+        var("GITHUB_CLIENT_ID").ok().and_then(|id| {
+            var("GITHUB_CLIENT_SECRET")
+                .ok()
+                .map(|secret| format!("?client_id={}&client_secret={}", id, secret))
+        })
+    }
+}
+
 impl Service for Github {
     type Response = GitHubApiResponse;
 
@@ -112,8 +127,11 @@ impl Service for Github {
 
     fn api_url(path: &FilePath) -> String {
         format!(
-            "https://api.github.com/repos/{}/{}/commits/{}",
-            path.user, path.repo, path.commit
+            "https://api.github.com/repos/{}/{}/commits/{}{}",
+            path.user,
+            path.repo,
+            path.commit,
+            Self::auth_query().unwrap_or_default()
         )
     }
 
