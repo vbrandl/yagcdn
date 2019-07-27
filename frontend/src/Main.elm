@@ -95,7 +95,7 @@ view state =
                 , br [] []
                 , renderMUrl state.parsed
                 ]
-            , input (myStyle2 [ placeholder ("https://" ++ hostname ++ "/<service>/<user>/<repo>/<gitref>/<file>"), disabled True, value (displayMUrl state.parsed) ]) []
+            , input (myStyle2 [ placeholder (hostname ++ "<service>/<user>/<repo>/<gitref>/<file>"), disabled True, value (displayMUrl state.parsed) ]) []
             ]
         ]
 
