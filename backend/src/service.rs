@@ -1,4 +1,7 @@
-use crate::data::FilePath;
+use crate::{
+    data::FilePath,
+    statics::{GITHUB_AUTH_QUERY, OPT},
+};
 use actix_web::{
     http::{header::LOCATION, StatusCode},
     web, Error, HttpResponse,
@@ -105,13 +108,17 @@ pub(crate) trait Service {
 pub(crate) struct Github;
 
 impl Github {
-    fn auth_query() -> Option<String> {
+    pub(crate) fn auth_query() -> Option<String> {
         use std::env::var;
-        var("GITHUB_CLIENT_ID").ok().and_then(|id| {
-            var("GITHUB_CLIENT_SECRET")
-                .ok()
-                .map(|secret| format!("?client_id={}&client_secret={}", id, secret))
-        })
+        OPT.github_id
+            .clone()
+            .or_else(|| var("GITHUB_CLIENT_ID").ok())
+            .and_then(|id| {
+                OPT.github_secret
+                    .clone()
+                    .or_else(|| var("GITHUB_CLIENT_SECRET").ok())
+                    .map(|secret| format!("?client_id={}&client_secret={}", id, secret))
+            })
     }
 }
 
@@ -131,7 +138,7 @@ impl Service for Github {
             path.user,
             path.repo,
             path.commit,
-            Self::auth_query().unwrap_or_default()
+            GITHUB_AUTH_QUERY.as_str()
         )
     }
 

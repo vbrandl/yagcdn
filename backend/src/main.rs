@@ -4,7 +4,10 @@ extern crate actix_web;
 extern crate lazy_static;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate structopt;
 
+mod config;
 mod data;
 mod error;
 mod service;
@@ -14,7 +17,7 @@ use crate::{
     data::FilePath,
     error::Result,
     service::{Bitbucket, GitLab, Github, Service},
-    statics::FAVICON,
+    statics::{FAVICON, OPT},
 };
 use actix_web::{
     http::header::{self, CacheControl, CacheDirective},
@@ -113,6 +116,7 @@ fn main() -> Result<()> {
                 web::get().to_async(handle_request::<GitLab>),
             )
     })
-    .bind("0.0.0.0:8080")?
+    .workers(OPT.workers)
+    .bind((OPT.interface, OPT.port))?
     .run()?)
 }
