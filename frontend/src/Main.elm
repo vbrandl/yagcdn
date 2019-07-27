@@ -1,7 +1,7 @@
 module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
-import Data exposing (Url, toHost, toUrl)
+import Data exposing (Url, hostname, toHost, toUrl)
 import Html exposing (Html, br, div, h1, input, table, td, text, tr)
 import Html.Attributes exposing (disabled, placeholder, style, value)
 import Html.Events exposing (onInput)
@@ -95,7 +95,7 @@ view state =
                 , br [] []
                 , renderMUrl state.parsed
                 ]
-            , input (myStyle2 [ placeholder "https://host/<service>/<user>/<repo>/<gitref>/<file>", disabled True, value (displayMUrl state.parsed) ]) []
+            , input (myStyle2 [ placeholder "https://" ++ hostname ++ "/<service>/<user>/<repo>/<gitref>/<file>", disabled True, value (displayMUrl state.parsed) ]) []
             ]
         ]
 

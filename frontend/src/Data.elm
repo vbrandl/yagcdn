@@ -1,9 +1,9 @@
-module Data exposing (Provider(..), Url, pathSeparator, toHost, toUrl)
+module Data exposing (Provider(..), Url, hostname, pathSeparator, toHost, toUrl)
 
 
 hostname : String
 hostname =
-    "https://cdn.hitsofcode.com/"
+    "https://gitcdn.tk/"
 
 
 type Provider
