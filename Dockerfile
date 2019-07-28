@@ -7,7 +7,6 @@ COPY ./frontend/elm.json ./elm.json
 COPY ./frontend/src ./src
 COPY ./frontend/tests ./tests
 
-RUN elm-test
 RUN ./build.sh
 
 
