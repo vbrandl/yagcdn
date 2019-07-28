@@ -17,6 +17,9 @@ impl Cloudflare {
         client: &Client,
         file: &str,
     ) -> impl Future<Item = HttpResponse, Error = Error> {
+        let payload = CfPurgeRequest::singleton::<T>(file);
+        println!("{:#?}", payload);
+        eprintln!("{:#?}", payload);
         client
             .post(format!(
                 "https://api.cloudflare.com/client/v4/zones/{}/purge_cache",
@@ -26,7 +29,7 @@ impl Cloudflare {
             .header("X-Auth-Email", Self::auth_email())
             .header("X-Auth-Key", Self::auth_key())
             .content_type("application/json")
-            .send_json(&CfPurgeRequest::singleton::<T>(file))
+            .send_json(&payload)
             .from_err()
             .and_then(|response| HttpResponse::build(response.status()).streaming(response))
     }
@@ -63,7 +66,7 @@ impl Cloudflare {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 struct CfPurgeRequest {
     files: Vec<String>,
 }
