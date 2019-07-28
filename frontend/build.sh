@@ -28,7 +28,7 @@ rename_with_hash() {
 
 create_index() {
   sha1=${1}
-  SHA1="${sha1}" envsubst < index.html > "${outdir}/index.html"
+  SHA1="${sha1}" envsubst < template.html > "${outdir}/index.html"
 }
 
 prepare

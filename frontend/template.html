@@ -1,0 +1,16 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Main</title>
+</head>
+
+<body>
+<div id="elm-${SHA1}"></div>
+<script src="./scripts/gitcdn-${SHA1}.min.js">
+</script>
+<script>
+  var app = Elm.Main.init({ node: document.getElementById("elm-${SHA1}") });
+</script>
+</body>
+</html>
