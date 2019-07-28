@@ -123,6 +123,10 @@ fn main() -> Result<()> {
                 web::delete().to_async(purge_cache::<Github>),
             )
             .route(
+                "/purge/github/{file:.*}",
+                web::get().to_async(purge_cache::<Github>),
+            )
+            .route(
                 "/bitbucket/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<Bitbucket>),
             )
