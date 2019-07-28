@@ -109,10 +109,6 @@ fn main() -> Result<()> {
     pretty_env_logger::init();
     openssl_probe::init_ssl_cert_env_vars();
 
-    eprintln!("CF_ZONE_IDENT {}", statics::CF_ZONE_IDENT.as_str());
-    eprintln!("CF_AUTH_USER {}", statics::CF_AUTH_USER.as_str());
-    eprintln!("CF_AUTH_KEY {}", statics::CF_AUTH_KEY.as_str());
-
     Ok(HttpServer::new(move || {
         App::new()
             .data(Client::new())
