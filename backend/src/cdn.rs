@@ -17,7 +17,6 @@ impl Cloudflare {
         client: &Client,
         file: &str,
     ) -> impl Future<Item = bool, Error = Error> {
-        println!("{}", file);
         client
             .post(format!(
                 "https://api.cloudflare.com/client/v4/zones/{}/purge_cache",
@@ -59,7 +58,6 @@ impl CfPurgeRequest {
             T::path(),
             file
         );
-        eprintln!("{}", url);
         Self { files: vec![url] }
     }
 }
