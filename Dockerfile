@@ -44,6 +44,6 @@ COPY --from=user_builder /etc/passwd /etc/passwd
 USER dummy
 
 COPY --from=backend /home/rust/src/target/x86_64-unknown-linux-musl/release/gitache /
-COPY --from=frontend /index.html /public/
+COPY --from=frontend /output/ /public/
 
 ENTRYPOINT ["/gitache"]
