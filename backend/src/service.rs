@@ -69,6 +69,8 @@ pub(crate) trait Service {
 
     fn api_url(path: &FilePath) -> String;
 
+    fn path() -> &'static str;
+
     fn redirect_url(user: &str, repo: &str, commit: &str, file: &str) -> String;
 
     fn request_head<S>(
@@ -124,6 +126,10 @@ impl Github {
 impl Service for Github {
     type Response = GitHubApiResponse;
 
+    fn path() -> &'static str {
+        "github"
+    }
+
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
         format!(
             "https://raw.githubusercontent.com/{}/{}/{}/{}",
@@ -151,6 +157,10 @@ pub(crate) struct Bitbucket;
 impl Service for Bitbucket {
     type Response = BitbucketApiResponse;
 
+    fn path() -> &'static str {
+        "bitbucket"
+    }
+
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
         format!(
             "https://bitbucket.org/{}/{}/raw/{}/{}",
@@ -174,6 +184,10 @@ pub(crate) struct GitLab;
 
 impl Service for GitLab {
     type Response = GitLabApiResponse;
+
+    fn path() -> &'static str {
+        "gitlab"
+    }
 
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
         format!(

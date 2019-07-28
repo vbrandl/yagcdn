@@ -96,11 +96,11 @@ fn favicon32() -> HttpResponse {
         .body(FAVICON)
 }
 
-fn purge_cache(
+fn purge_cache<T: Service>(
     client: web::Data<Client>,
-    data: web::Path<String>,
+    file: web::Path<String>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    Cloudflare::purge_cache(&client, &data)
+    Cloudflare::purge_cache::<T>(&client, &file)
         .map(|success| HttpResponse::Ok().body(success.to_string()))
 }
 
@@ -119,14 +119,25 @@ fn main() -> Result<()> {
                 web::get().to_async(handle_request::<Github>),
             )
             .route(
+                "/github/{file:.*}",
+                web::delete().to_async(purge_cache::<Github>),
+            )
+            .route(
                 "/bitbucket/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<Bitbucket>),
+            )
+            .route(
+                "/bitbucket//{file:.*}",
+                web::delete().to_async(purge_cache::<Bitbucket>),
             )
             .route(
                 "/gitlab/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<GitLab>),
             )
-            .route("/purge/{path:.*}", web::delete().to_async(purge_cache))
+            .route(
+                "/gitlab/{file:.*}",
+                web::delete().to_async(purge_cache::<GitLab>),
+            )
             .service(actix_files::Files::new("/", "public").index_file("index.html"))
     })
     .workers(OPT.workers)

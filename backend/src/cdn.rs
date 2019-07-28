@@ -1,4 +1,7 @@
-use crate::statics::{self, CF_ZONE_IDENT};
+use crate::{
+    service::Service,
+    statics::{self, CF_ZONE_IDENT},
+};
 use actix_web::{http::header, Error};
 use awc::Client;
 use futures::Future;
@@ -10,7 +13,7 @@ impl Cloudflare {
         &CF_ZONE_IDENT
     }
 
-    pub(crate) fn purge_cache(
+    pub(crate) fn purge_cache<T: Service>(
         client: &Client,
         file: &str,
     ) -> impl Future<Item = bool, Error = Error> {
@@ -23,7 +26,7 @@ impl Cloudflare {
             .header("X-Auth-Email", Self::auth_email())
             .header("X-Auth-Key", Self::auth_key())
             .content_type("application/json")
-            .send_json(&CfPurgeRequest::singleton(file))
+            .send_json(&CfPurgeRequest::singleton::<T>(file))
             .from_err()
             .and_then(|mut response| {
                 response
@@ -48,8 +51,13 @@ struct CfPurgeRequest {
 }
 
 impl CfPurgeRequest {
-    fn singleton(file: &str) -> Self {
-        let url = format!("https://{}/{}", statics::HOSTNAME.as_str(), file);
+    fn singleton<T: Service>(file: &str) -> Self {
+        let url = format!(
+            "https://{}/{}/{}",
+            statics::HOSTNAME.as_str(),
+            T::path(),
+            file
+        );
         Self { files: vec![url] }
     }
 }
