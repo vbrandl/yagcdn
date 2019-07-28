@@ -45,6 +45,6 @@ USER dummy
 
 COPY --from=backend /home/rust/src/target/x86_64-unknown-linux-musl/release/gitache /
 COPY --from=frontend /output/index.html /public/index.html
-COPY --from=frontend /output/scripts/ /public/scripts/
+COPY --from=frontend /output/scripts /public/scripts
 
 ENTRYPOINT ["/gitache"]
