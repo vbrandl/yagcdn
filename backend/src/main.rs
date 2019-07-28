@@ -7,6 +7,7 @@ extern crate serde_derive;
 #[macro_use]
 extern crate structopt;
 
+mod cdn;
 mod config;
 mod data;
 mod error;
@@ -14,6 +15,7 @@ mod service;
 mod statics;
 
 use crate::{
+    cdn::Cloudflare,
     data::FilePath,
     error::Result,
     service::{Bitbucket, GitLab, Github, Service},
@@ -94,6 +96,14 @@ fn favicon32() -> HttpResponse {
         .body(FAVICON)
 }
 
+fn purge_cache(
+    client: web::Data<Client>,
+    data: web::Path<String>,
+) -> impl Future<Item = HttpResponse, Error = Error> {
+    Cloudflare::purge_cache(&client, &data)
+        .map(|success| HttpResponse::Ok().body(success.to_string()))
+}
+
 fn main() -> Result<()> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=trace");
     pretty_env_logger::init();
@@ -116,6 +126,7 @@ fn main() -> Result<()> {
                 "/gitlab/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<GitLab>),
             )
+            .route("/purge/{path:.*}", web::delete().to_async(purge_cache))
             .service(actix_files::Files::new("/", "public").index_file("index.html"))
     })
     .workers(OPT.workers)

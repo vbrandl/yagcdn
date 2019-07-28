@@ -204,7 +204,6 @@ impl Service for GitLab {
     where
         S: 'static + Stream<Item = Bytes, Error = PayloadError>,
     {
-        // "https://gitlab.com/api/v4/projects/{}/repository/branches/{}",
         Box::new(match response.status() {
             StatusCode::OK => Box::new(
                 response

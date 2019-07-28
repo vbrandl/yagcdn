@@ -17,4 +17,16 @@ pub(crate) struct Opt {
     #[structopt(long = "gh-secret")]
     /// GitHub OAuth client secret
     pub(crate) github_secret: Option<String>,
+    #[structopt(long = "cf-zone")]
+    /// Cloudflare zone identifier
+    pub(crate) cf_zone: Option<String>,
+    #[structopt(long = "cf-auth-key")]
+    /// Cloudflare auth key
+    pub(crate) cf_auth_key: Option<String>,
+    #[structopt(long = "cf-auth-user")]
+    /// Cloudflare auth user
+    pub(crate) cf_auth_user: Option<String>,
+    #[structopt(long = "hostname")]
+    /// Hostname
+    pub(crate) hostname: Option<String>,
 }
