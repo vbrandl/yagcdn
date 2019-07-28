@@ -7,5 +7,5 @@ services:
     environment:
       - CF_ZONE_IDENT=${CF_ZONE_IDENT}
       - CF_AUTH_USER=${CF_AUTH_USER}
-      - CF_APUTH_KEY=${CF_AUTH_KEY}
+      - CF_AUTH_KEY=${CF_AUTH_KEY}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
