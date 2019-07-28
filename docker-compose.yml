@@ -6,6 +6,6 @@ services:
     restart: always
     environment:
       - CF_ZONE_IDENT=${CF_ZONE_IDENT}
-      - CF_API_USER=${CF_API_USER}
-      - CF_API_KEY=${CF_API_KEY}
+      - CF_AUTH_USER=${CF_AUTH_USER}
+      - CF_APUTH_KEY=${CF_AUTH_KEY}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
