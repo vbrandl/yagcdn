@@ -11,21 +11,27 @@ lazy_static! {
     pub(crate) static ref CF_ZONE_IDENT: String = OPT
         .cf_zone
         .clone()
-        .or_else(|| env::var("CF_ZONE_IDENT").ok())
+        .or_else(|| load_env_var("CF_ZONE_IDENT"))
         .expect("Cloudflare zone identifier not set");
     pub(crate) static ref CF_AUTH_KEY: String = OPT
         .cf_auth_key
         .clone()
-        .or_else(|| env::var("CF_AUTH_KEY").ok())
+        .or_else(|| load_env_var("CF_AUTH_KEY"))
         .expect("Cloudflare auth key not set");
     pub(crate) static ref CF_AUTH_USER: String = OPT
         .cf_auth_user
         .clone()
-        .or_else(|| env::var("CF_AUTH_USER").ok())
+        .or_else(|| load_env_var("CF_AUTH_USER"))
         .expect("Cloudflare auth user not set");
     pub(crate) static ref HOSTNAME: String = OPT
         .hostname
         .clone()
-        .or_else(|| env::var("GITACHE_HOSTNAME").ok())
+        .or_else(|| load_env_var("GITACHE_HOSTNAME"))
         .unwrap_or_else(|| "gitcdn.tk".to_string());
+}
+
+pub(crate) fn load_env_var(key: &str) -> Option<String> {
+    env::var(key)
+        .ok()
+        .and_then(|val| if val.is_empty() { None } else { Some(val) })
 }

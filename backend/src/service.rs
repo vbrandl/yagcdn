@@ -1,6 +1,6 @@
 use crate::{
     data::FilePath,
-    statics::{GITHUB_AUTH_QUERY, OPT},
+    statics::{load_env_var, GITHUB_AUTH_QUERY, OPT},
 };
 use actix_web::{
     http::{header::LOCATION, StatusCode},
@@ -109,14 +109,13 @@ pub(crate) struct Github;
 
 impl Github {
     pub(crate) fn auth_query() -> Option<String> {
-        use std::env::var;
         OPT.github_id
             .clone()
-            .or_else(|| var("GITHUB_CLIENT_ID").ok())
+            .or_else(|| load_env_var("GITHUB_CLIENT_ID"))
             .and_then(|id| {
                 OPT.github_secret
                     .clone()
-                    .or_else(|| var("GITHUB_CLIENT_SECRET").ok())
+                    .or_else(|| load_env_var("GITHUB_CLIENT_SECRET"))
                     .map(|secret| format!("?client_id={}&client_secret={}", id, secret))
             })
     }
