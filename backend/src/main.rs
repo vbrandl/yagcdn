@@ -104,6 +104,13 @@ fn purge_cache<T: Service>(
         .map(|success| HttpResponse::Ok().body(success.to_string()))
 }
 
+fn dbg<T: Service>(
+    client: web::Data<Client>,
+    file: web::Path<String>,
+) -> impl Future<Item = HttpResponse, Error = Error> {
+    Cloudflare::dbg::<T>(&client, &file)
+}
+
 fn main() -> Result<()> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=trace");
     pretty_env_logger::init();
@@ -118,26 +125,20 @@ fn main() -> Result<()> {
                 "/github/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<Github>),
             )
-            .route(
-                "/github/{file:.*}",
-                web::delete().to_async(purge_cache::<Github>),
-            )
+            .route("/github/{file:.*}", web::delete().to_async(dbg::<Github>))
             .route(
                 "/bitbucket/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<Bitbucket>),
             )
             .route(
                 "/bitbucket//{file:.*}",
-                web::delete().to_async(purge_cache::<Bitbucket>),
+                web::delete().to_async(dbg::<Bitbucket>),
             )
             .route(
                 "/gitlab/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<GitLab>),
             )
-            .route(
-                "/gitlab/{file:.*}",
-                web::delete().to_async(purge_cache::<GitLab>),
-            )
+            .route("/gitlab/{file:.*}", web::delete().to_async(dbg::<GitLab>))
             .service(actix_files::Files::new("/", "public").index_file("index.html"))
     })
     .workers(OPT.workers)
