@@ -76,6 +76,8 @@ impl CfPurgeRequest {
             T::path(),
             file
         );
+        println!("{}", url);
+        eprintln!("{}", url);
         Self { files: vec![url] }
     }
 }
