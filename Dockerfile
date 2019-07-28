@@ -1,8 +1,12 @@
 FROM node:alpine as frontend
 
+# install envsubst
+RUN apk add -U --upgrade --no-cache gettext
+
 RUN yarn global add elm elm-test uglify-js
 
 COPY ./frontend/build.sh ./build.sh
+COPY ./frontend/index.html ./index.html
 COPY ./frontend/elm.json ./elm.json
 COPY ./frontend/src ./src
 COPY ./frontend/tests ./tests
