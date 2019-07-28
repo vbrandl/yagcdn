@@ -6,7 +6,7 @@ COPY ./frontend/elm.json ./elm.json
 COPY ./frontend/src ./src
 COPY ./frontend/tests ./tests
 
-RUN elm make src/Main.elm
+RUN elm make --optimize src/Main.elm
 
 
 FROM ekidd/rust-musl-builder:stable as backend
