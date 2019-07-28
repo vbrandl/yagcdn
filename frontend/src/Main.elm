@@ -68,7 +68,7 @@ displayMUrl : Maybe Url -> String
 displayMUrl mUrl =
     mUrl
         |> Maybe.map toUrl
-        |> Maybe.withDefault ""
+        |> Maybe.withDefault (hostname ++ "<service>/<user>/<repo>/<gitref>/<file>")
 
 
 myStyle : List (Html.Attribute msg)
@@ -83,20 +83,17 @@ myStyle2 =
 
 view : Model -> Html Msg
 view state =
-    div []
+    div myStyle
         [ h1 []
             [ text "Gitache" ]
-        , div
-            myStyle
-            [ ribbon
-            , input (myStyle2 [ placeholder "URL to parse", value state.url, onInput UrlChange ]) []
-            , div myStyle
-                [ text "Parsed URL: "
-                , br [] []
-                , renderMUrl state.parsed
-                ]
-            , input (myStyle2 [ placeholder (hostname ++ "<service>/<user>/<repo>/<gitref>/<file>"), disabled True, value (displayMUrl state.parsed) ]) []
-            ]
+        , ribbon
+        , input (myStyle2 [ placeholder "URL to parse", value state.url, onInput UrlChange ])
+            []
+        , text
+            "Parsed URL: "
+        , br [] []
+        , renderMUrl state.parsed
+        , input (myStyle2 [ disabled True, value (displayMUrl state.parsed) ]) []
         ]
 
 
