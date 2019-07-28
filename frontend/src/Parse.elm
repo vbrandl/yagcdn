@@ -7,10 +7,10 @@ parseUrl : String -> Maybe Url
 parseUrl url =
     stripProtocol url
         |> splitProvider
-        |> Maybe.andThen splitOfHead
-        |> Maybe.andThen splitOfHead
-        |> Maybe.andThen splitOfHead
-        |> Maybe.andThen splitOfHead
+        |> Maybe.andThen splitOffHead
+        |> Maybe.andThen splitOffHead
+        |> Maybe.andThen splitOffHead
+        |> Maybe.andThen splitOffHead
         |> Maybe.andThen
             (\( ( ( ( ( prov, user ), repo ), separator ), gitref ), file ) ->
                 if List.isEmpty file || (separator /= pathSeparator prov) then
@@ -27,8 +27,8 @@ parseUrl url =
             )
 
 
-splitOfHead : ( a, List b ) -> Maybe ( ( a, b ), List b )
-splitOfHead ( head, tail ) =
+splitOffHead : ( a, List b ) -> Maybe ( ( a, b ), List b )
+splitOffHead ( head, tail ) =
     splitPart tail
         |> Maybe.map (\( h, t ) -> ( ( head, h ), t ))
 
@@ -52,6 +52,9 @@ parseProvider prov =
 
         "bitbucket.org" ->
             Just Bitbucket
+
+        "gitlab.com" ->
+            Just GitLab
 
         _ ->
             Nothing

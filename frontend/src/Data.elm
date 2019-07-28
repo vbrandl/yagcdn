@@ -9,6 +9,7 @@ hostname =
 type Provider
     = GitHub
     | Bitbucket
+    | GitLab
 
 
 type alias Url =
@@ -29,6 +30,9 @@ toHost prov =
         Bitbucket ->
             "bitbucket/"
 
+        GitLab ->
+            "gitlab/"
+
 
 pathSeparator : Provider -> String
 pathSeparator prov =
@@ -39,7 +43,10 @@ pathSeparator prov =
         Bitbucket ->
             "src"
 
+        GitLab ->
+            "blob"
+
 
 toUrl : Url -> String
 toUrl { prov, user, repo, gitref, file } =
-    hostname ++ toHost prov ++ String.join "/" [ user, repo, pathSeparator prov, gitref, file ]
+    hostname ++ toHost prov ++ String.join "/" [ user, repo, gitref, file ]

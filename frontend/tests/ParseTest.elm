@@ -1,14 +1,19 @@
 module ParseTest exposing
     ( invalidHostInUrlBitbucket
     , invalidHostInUrlGitHub
+    , invalidHostInUrlGitLab
     , invalidUrlBitbucket
     , invalidUrlGitHub
+    , invalidUrlGitLab
     , validHttpUrlBitbucket
     , validHttpUrlGitHub
+    , validHttpUrlGitLab
     , validHttpsUrlBitbucket
     , validHttpsUrlGitHub
+    , validHttpsUrlGitLab
     , validUrlWithoutProtocolBitbucket
     , validUrlWithoutProtocolGitHub
+    , validUrlWithoutProtocolGitLab
     )
 
 import Data exposing (Provider(..), Url)
@@ -30,6 +35,11 @@ expectedGitHubUrl =
 expectedBitbucketUrl : Url
 expectedBitbucketUrl =
     expectedUrl Bitbucket
+
+
+expectedGitLabUrl : Url
+expectedGitLabUrl =
+    expectedUrl GitLab
 
 
 validHttpsUrlGitHub : Test
@@ -90,3 +100,33 @@ invalidHostInUrlBitbucket : Test
 invalidHostInUrlBitbucket =
     test "Parsing Invalid Host in URL for Bitbucket"
         (\_ -> Expect.equal Nothing (parseUrl "https://example.com/user/repo/blob/src/README.md"))
+
+
+validHttpsUrlGitLab : Test
+validHttpsUrlGitLab =
+    test "Parsing Valid HTTPS URL for GitLab"
+        (\_ -> Expect.equal (Just expectedGitLabUrl) (parseUrl "https://GITLAB.CoM/user/repo/blob/master/README.md"))
+
+
+validHttpUrlGitLab : Test
+validHttpUrlGitLab =
+    test "Parsing Valid HTTP URL for GitLab"
+        (\_ -> Expect.equal (Just expectedGitLabUrl) (parseUrl "http://gItLaB.CoM/user/repo/blob/master/README.md"))
+
+
+validUrlWithoutProtocolGitLab : Test
+validUrlWithoutProtocolGitLab =
+    test "Parsing Valid URL without Protocol for GitLab"
+        (\_ -> Expect.equal (Just expectedGitLabUrl) (parseUrl "GiTlAb.CoM/user/repo/blob/master/README.md"))
+
+
+invalidUrlGitLab : Test
+invalidUrlGitLab =
+    test "Parsing Invalid URL for GitLab"
+        (\_ -> Expect.equal Nothing (parseUrl "https://gitLab.CoM/user"))
+
+
+invalidHostInUrlGitLab : Test
+invalidHostInUrlGitLab =
+    test "Parsing Invalid Host in URL for GitLab"
+        (\_ -> Expect.equal Nothing (parseUrl "https://example.com/user/repo/blob/master/README.md"))
