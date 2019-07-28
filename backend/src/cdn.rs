@@ -19,7 +19,6 @@ impl Cloudflare {
     ) -> impl Future<Item = HttpResponse, Error = Error> {
         let payload = CfPurgeRequest::singleton::<T>(file);
         println!("{:#?}", payload);
-        eprintln!("{:#?}", payload);
         client
             .post(format!(
                 "https://api.cloudflare.com/client/v4/zones/{}/purge_cache",
@@ -73,15 +72,14 @@ struct CfPurgeRequest {
 
 impl CfPurgeRequest {
     fn singleton<T: Service>(file: &str) -> Self {
-        let url = format!(
-            "https://{}/{}/{}",
-            statics::HOSTNAME.as_str(),
-            T::path(),
-            file
-        );
-        println!("{}", url);
-        eprintln!("{}", url);
-        Self { files: vec![url] }
+        Self {
+            files: vec![format!(
+                "https://{}/{}/{}",
+                statics::HOSTNAME.as_str(),
+                T::path(),
+                file
+            )],
+        }
     }
 }
 
