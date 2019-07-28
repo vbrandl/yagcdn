@@ -1,12 +1,14 @@
 FROM node:alpine as frontend
 
-RUN yarn global add elm elm-test
+RUN yarn global add elm elm-test uglify-js
 
+COPY ./frontend/build.sh ./build.sh
 COPY ./frontend/elm.json ./elm.json
 COPY ./frontend/src ./src
 COPY ./frontend/tests ./tests
 
-RUN elm make --optimize src/Main.elm
+RUN elm-test
+RUN ./build.sh
 
 
 FROM ekidd/rust-musl-builder:stable as backend
