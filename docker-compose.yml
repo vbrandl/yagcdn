@@ -4,3 +4,8 @@ services:
   gitache:
     build: ./
     restart: always
+    environment:
+      - CF_ZONE_IDENT=${CF_ZONE_IDENT}
+      - CF_API_USER=${CF_API_USER}
+      - CF_API_KEY=${CF_API_KEY}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
