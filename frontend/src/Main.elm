@@ -2,7 +2,7 @@ module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
 import Data exposing (Url, hostname, repository, servicename, toUrl)
-import Html exposing (Html, a, article, div, h1, input, li, nav, small, text, ul)
+import Html exposing (Html, a, article, h1, input, li, nav, section, small, text, ul)
 import Html.Attributes exposing (disabled, href, placeholder, style, value)
 import Html.Events exposing (onInput)
 import Parse exposing (parseUrl)
@@ -52,7 +52,7 @@ myStyle2 =
 
 view : Model -> Html Msg
 view state =
-    div myStyle
+    section myStyle
         [ header
         , body state
         , footer
