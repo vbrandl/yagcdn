@@ -1,8 +1,28 @@
-module Main exposing (Model, Msg(..), init, main, update, view)
+module Main exposing
+    ( Model
+    , Msg(..)
+    , init
+    , main
+    , update
+    , view
+    )
 
 import Browser
 import Data exposing (Url, hostname, repository, servicename, toUrl)
-import Html exposing (Html, a, article, h1, input, li, nav, section, small, text, ul)
+import Html
+    exposing
+        ( Html
+        , a
+        , article
+        , h1
+        , input
+        , li
+        , nav
+        , section
+        , small
+        , text
+        , ul
+        )
 import Html.Attributes exposing (disabled, href, placeholder, style, value)
 import Html.Events exposing (onInput)
 import Parse exposing (parseUrl)
@@ -75,7 +95,8 @@ footer =
                 [ li []
                     [ small []
                         [ text "Created by "
-                        , a [ href "https://www.vbrandl.net/" ] [ text "Valentin Brandl" ]
+                        , a [ href "https://www.vbrandl.net/" ]
+                            [ text "Valentin Brandl" ]
                         , text "."
                         ]
                     ]
@@ -85,11 +106,15 @@ footer =
             [ ul []
                 [ li []
                     [ small []
-                        [ a [ href repository ] [ text "Repository" ] ]
+                        [ a [ href repository ]
+                            [ text "Repository" ]
+                        ]
                     ]
                 , li []
                     [ small []
-                        [ a [ href "https://opensource.org/licenses/MIT" ] [ text "MIT License" ] ]
+                        [ a [ href "https://opensource.org/licenses/MIT" ]
+                            [ text "MIT License" ]
+                        ]
                     ]
                 ]
             ]
@@ -107,4 +132,8 @@ body state =
 
 main : Program () Model Msg
 main =
-    Browser.sandbox { init = init, update = update, view = view }
+    Browser.sandbox
+        { init = init
+        , update = update
+        , view = view
+        }
