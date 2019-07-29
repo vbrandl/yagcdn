@@ -14,8 +14,7 @@ parseUrl url =
         |> Maybe.andThen
             (\( ( ( ( ( prov, user ), repo ), separator ), gitref ), file ) ->
                 if
-                    List.isEmpty file
-                        || (List.head file |> Maybe.map String.isEmpty |> Maybe.withDefault False)
+                    (List.head file |> Maybe.map String.isEmpty |> Maybe.withDefault True)
                         || (separator /= pathSeparator prov)
                 then
                     Nothing
