@@ -81,6 +81,18 @@ footer =
                     ]
                 ]
             ]
+        , nav []
+            [ ul []
+                [ li []
+                    [ small []
+                        [ a [ href repository ] [ text "Repository" ] ]
+                    ]
+                , li []
+                    [ small []
+                        [ a [ href "https://opensource.org/licenses/MIT" ] [ text "MIT License" ] ]
+                    ]
+                ]
+            ]
         ]
 
 
