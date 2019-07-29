@@ -120,6 +120,7 @@ fn main() -> Result<()> {
         App::new()
             .data(Client::new())
             .wrap(middleware::Logger::default())
+            .wrap(middleware::NormalizePath)
             .service(favicon32)
             .route(
                 "/github/{user}/{repo}/{commit}/{file:.*}",
