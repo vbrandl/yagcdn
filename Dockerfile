@@ -3,16 +3,15 @@ FROM node:alpine as frontend
 # install envsubst
 RUN apk add -U --upgrade --no-cache gettext
 
-RUN yarn global add elm elm-test uglify-js
+RUN yarn global add elm uglify-js
 
 COPY ./frontend/build.sh ./build.sh
 COPY ./frontend/template.html ./template.html
 COPY ./frontend/elm.json ./elm.json
 COPY ./frontend/src ./src
-COPY ./frontend/tests ./tests
+# COPY ./frontend/tests ./tests
 
 RUN ./build.sh
-
 
 FROM ekidd/rust-musl-builder:stable as backend
 
