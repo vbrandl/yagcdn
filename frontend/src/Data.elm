@@ -1,4 +1,14 @@
-module Data exposing (Provider(..), Url, hostname, pathSeparator, toHost, toUrl)
+module Data exposing (Provider(..), Url, hostname, pathSeparator, repository, servicename, toUrl)
+
+
+repository : String
+repository =
+    "https://git.vbrandl.net/vbrandl/gitache"
+
+
+servicename : String
+servicename =
+    "GitCDN"
 
 
 hostname : String

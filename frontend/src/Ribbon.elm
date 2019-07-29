@@ -6,10 +6,10 @@ import Svg exposing (Svg, path, svg)
 import Svg.Attributes exposing (class, d, fill, height, style, viewBox, width)
 
 
-ribbon : Html msg
-ribbon =
+ribbon : String -> Html msg
+ribbon repo =
     a
-        [ href "https://github.com/vbrandl/gitache" ]
+        [ href repo ]
         [ ribbonSvg ]
 
 

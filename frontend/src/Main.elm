@@ -1,9 +1,9 @@
 module Main exposing (Model, Msg(..), init, main, update, view)
 
 import Browser
-import Data exposing (Url, hostname, toHost, toUrl)
-import Html exposing (Html, br, div, h1, input, table, td, text, tr)
-import Html.Attributes exposing (disabled, placeholder, style, value)
+import Data exposing (Url, hostname, repository, servicename, toUrl)
+import Html exposing (Html, a, article, div, h1, input, li, nav, small, text, ul)
+import Html.Attributes exposing (disabled, href, placeholder, style, value)
 import Html.Events exposing (onInput)
 import Parse exposing (parseUrl)
 import Ribbon exposing (ribbon)
@@ -33,37 +33,6 @@ update msg state =
             { state | url = newUrl, parsed = parseUrl newUrl }
 
 
-renderUrl : Url -> Html msg
-renderUrl { prov, user, repo, file } =
-    div myStyle
-        [ table myStyle
-            [ tr myStyle
-                [ td myStyle [ text "host" ]
-                , td myStyle [ text (toHost prov) ]
-                ]
-            , tr []
-                [ td myStyle [ text "user" ]
-                , td myStyle [ text user ]
-                ]
-            , tr myStyle
-                [ td myStyle [ text "repo" ]
-                , td myStyle [ text repo ]
-                ]
-            , tr myStyle
-                [ td myStyle [ text "file" ]
-                , td myStyle [ text file ]
-                ]
-            ]
-        ]
-
-
-renderMUrl : Maybe Url -> Html msg
-renderMUrl mUrl =
-    mUrl
-        |> Maybe.map renderUrl
-        |> Maybe.withDefault (div myStyle [ text "Parse Error" ])
-
-
 displayMUrl : Maybe Url -> String
 displayMUrl mUrl =
     mUrl
@@ -84,15 +53,42 @@ myStyle2 =
 view : Model -> Html Msg
 view state =
     div myStyle
-        [ h1 []
-            [ text "Gitache" ]
-        , ribbon
-        , input (myStyle2 [ placeholder "URL to parse", value state.url, onInput UrlChange ])
+        [ header
+        , body state
+        , footer
+        ]
+
+
+header : Html msg
+header =
+    Html.header []
+        [ h1 myStyle [ text servicename ]
+        , ribbon repository
+        ]
+
+
+footer : Html msg
+footer =
+    Html.footer myStyle
+        [ nav []
+            [ ul []
+                [ li []
+                    [ small []
+                        [ text "Created by "
+                        , a [ href "https://www.vbrandl.net/" ] [ text "Valentin Brandl" ]
+                        , text "."
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+
+body : Model -> Html Msg
+body state =
+    article myStyle
+        [ input (myStyle2 [ placeholder "GitHub/GitLab/Bitbucket URL", value state.url, onInput UrlChange ])
             []
-        , text
-            "Parsed URL: "
-        , br [] []
-        , renderMUrl state.parsed
         , input (myStyle2 [ disabled True, value (displayMUrl state.parsed) ]) []
         ]
 
