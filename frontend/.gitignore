@@ -11,3 +11,4 @@ repl-temp-*
 # End of https://www.gitignore.io/api/elm
 index.html
 output
+gitcdn.*js
