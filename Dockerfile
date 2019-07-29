@@ -6,6 +6,7 @@ RUN apk add -U --upgrade --no-cache gettext
 RUN yarn global add elm uglify-js
 
 COPY ./frontend/build.sh ./build.sh
+COPY ./frontend/assets ./assets
 COPY ./frontend/template.html ./template.html
 COPY ./frontend/elm.json ./elm.json
 COPY ./frontend/src ./src
