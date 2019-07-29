@@ -140,7 +140,7 @@ fn main() -> Result<()> {
                 web::get().to_async(handle_request::<GitLab>),
             )
             .route("/gitlab/{file:.*}", web::delete().to_async(dbg::<GitLab>))
-            .service(actix_files::Files::new("/", "public").index_file("index.html"))
+            .service(actix_files::Files::new("/", "./public").index_file("index.html"))
     })
     .workers(OPT.workers)
     .bind((OPT.interface, OPT.port))?
