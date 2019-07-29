@@ -13,7 +13,11 @@ parseUrl url =
         |> Maybe.andThen splitOffHead
         |> Maybe.andThen
             (\( ( ( ( ( prov, user ), repo ), separator ), gitref ), file ) ->
-                if List.isEmpty file || (separator /= pathSeparator prov) then
+                if
+                    List.isEmpty file
+                        || (List.head file |> Maybe.map String.isEmpty |> Maybe.withDefault False)
+                        || (separator /= pathSeparator prov)
+                then
                     Nothing
 
                 else
