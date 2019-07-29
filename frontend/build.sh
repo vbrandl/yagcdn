@@ -6,6 +6,7 @@ outdir="./output/"
 scriptdir="${outdir}scripts/"
 
 prepare() {
+  rm -rf "${outdir}"
   mkdir -p "${outdir}/scripts"
 }
 
@@ -31,9 +32,14 @@ create_index() {
   SHA1="${sha1}" envsubst < template.html > "${outdir}/index.html"
 }
 
+copy_assets() {
+  cp -r assets ${outdir}
+}
+
 prepare
 build
 minify
 sha1=$(sha1)
 rename_with_hash "${sha1}"
 create_index "${sha1}"
+copy_assets
