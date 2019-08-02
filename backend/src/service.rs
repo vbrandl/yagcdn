@@ -199,10 +199,6 @@ impl Service for GitLab {
     fn api_url(path: &FilePath) -> String {
         let repo_pattern = format!("{}/{}", path.user, path.repo).replace("/", "%2F");
         format!("https://gitlab.com/api/v4/projects/{}", repo_pattern)
-        // format!(
-        //     "https://gitlab.com/api/v4/projects/{}/repository/branches/{}",
-        //     path.repo, path.commit
-        // )
     }
 
     fn redirect_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
