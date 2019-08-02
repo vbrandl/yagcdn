@@ -81,7 +81,7 @@ pub(crate) trait Service {
     where
         S: 'static + Stream<Item = Bytes, Error = PayloadError>,
     {
-        Box::new(match response.status() {
+        match response.status() {
             StatusCode::OK => Box::new(
                 response
                     .json::<Self::Response>()
@@ -103,7 +103,7 @@ pub(crate) trait Service {
             ) as Box<dyn Future<Item = HttpResponse, Error = Error>>,
             code => Box::new(futures::future::ok(HttpResponse::build(code).finish()))
                 as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-        })
+        }
     }
 }
 
@@ -213,7 +213,7 @@ impl Service for GitLab {
     where
         S: 'static + Stream<Item = Bytes, Error = PayloadError>,
     {
-        Box::new(match response.status() {
+        match response.status() {
             StatusCode::OK => Box::new(
                 response
                     .json::<GitLabProject>()
@@ -258,6 +258,6 @@ impl Service for GitLab {
             ) as Box<dyn Future<Item = HttpResponse, Error = Error>>,
             code => Box::new(futures::future::ok(HttpResponse::build(code).finish()))
                 as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-        })
+        }
     }
 }
