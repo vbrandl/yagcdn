@@ -15,9 +15,11 @@ import Html
         , a
         , article
         , h1
+        , h2
         , input
         , li
         , nav
+        , p
         , section
         , small
         , text
@@ -127,7 +129,22 @@ body state =
         [ input (myStyle2 [ placeholder "GitHub/GitLab/Bitbucket URL", value state.url, onInput UrlChange ])
             []
         , input (myStyle2 [ disabled True, value (displayMUrl state.parsed) ]) []
+        , h2 myStyle
+            [ text "Caching" ]
+        , p myStyle
+            [ text "Files are cached in the CDN for about one year" ]
+        , h2 myStyle
+            [ text "Invalidating the Cache" ]
+        , p myStyle
+            [ text "To delete a file from the cache, just request the file via HTTP "
+            , code "DELETE"
+            ]
         ]
+
+
+code : String -> Html msg
+code msg =
+    Html.code [] [ text msg ]
 
 
 main : Program () Model Msg
