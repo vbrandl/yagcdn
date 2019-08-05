@@ -28,7 +28,6 @@ import Html
 import Html.Attributes exposing (href, placeholder, readonly, style, value)
 import Html.Events exposing (onInput)
 import Parse exposing (parseUrl)
-import Ribbon exposing (ribbon)
 
 
 type Msg
@@ -85,7 +84,6 @@ header : Html msg
 header =
     Html.header []
         [ h1 myStyle [ text servicename ]
-        , ribbon repository
         ]
 
 
