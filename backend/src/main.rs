@@ -85,6 +85,34 @@ fn handle_request<T: Service>(
     }
 }
 
+fn serve_gist(
+    client: web::Data<Client>,
+    data: web::Path<FilePath>,
+) -> impl Future<Item = HttpResponse, Error = Error> {
+    let url = format!(
+        "https://gist.github.com/{}/{}/raw/{}/{}",
+        data.user, data.repo, data.commit, data.file
+    );
+    client
+        .get(url)
+        .header(header::USER_AGENT, statics::USER_AGENT.as_str())
+        .send()
+        .from_err()
+        .and_then(move |response| match response.status() {
+            StatusCode::OK => {
+                let mime = mime_guess::guess_mime_type(&data.file);
+                Ok(HttpResponse::Ok()
+                    .content_type(mime.to_string().as_str())
+                    .set(CacheControl(vec![
+                        CacheDirective::Public,
+                        CacheDirective::MaxAge(2_592_000_000),
+                    ]))
+                    .streaming(response))
+            }
+            code => Ok(HttpResponse::build(code).finish()),
+        })
+}
+
 #[get("/favicon.ico")]
 fn favicon32() -> HttpResponse {
     HttpResponse::Ok()
@@ -138,6 +166,10 @@ fn main() -> Result<()> {
             .route(
                 "/gitlab/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<GitLab>),
+            )
+            .route(
+                "/gist/{user}/{repo}/{commit}/{file:.*}",
+                web::get().to_async(serve_gist),
             )
             .route("/gitlab/{file:.*}", web::delete().to_async(dbg::<GitLab>))
             .service(actix_files::Files::new("/", "./public").index_file("index.html"))
