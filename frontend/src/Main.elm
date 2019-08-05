@@ -25,7 +25,7 @@ import Html
         , text
         , ul
         )
-import Html.Attributes exposing (disabled, href, placeholder, style, value)
+import Html.Attributes exposing (href, placeholder, readonly, style, value)
 import Html.Events exposing (onInput)
 import Parse exposing (parseUrl)
 import Ribbon exposing (ribbon)
@@ -128,7 +128,7 @@ body state =
     article myStyle
         [ input (myStyle2 [ placeholder "GitHub/GitLab/Bitbucket URL", value state.url, onInput UrlChange ])
             []
-        , input (myStyle2 [ disabled True, value (displayMUrl state.parsed) ]) []
+        , input (myStyle2 [ readonly True, value (displayMUrl state.parsed) ]) []
         , h2 myStyle
             [ text "Caching" ]
         , p myStyle
