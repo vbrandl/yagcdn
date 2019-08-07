@@ -19,11 +19,12 @@ FROM ekidd/rust-musl-builder:stable as backend
 # create new cargo project
 RUN USER=rust cargo new --bin gitache
 RUN USER=rust cargo new --lib time-cache
-WORKDIR /home/rust/src/gitache
 # copy build config
 COPY --chown=rust ./backend/Cargo.lock ./gitache/Cargo.lock
 COPY --chown=rust ./backend/Cargo.toml ./gitache/Cargo.toml
 COPY --chown=rust ./time-cache/Cargo.toml ./time-cache/Cargo.toml
+
+WORKDIR /home/rust/src/gitache
 # build to cache dependencies
 RUN cargo build --release
 # delete build cache to prevent caching issues later on
