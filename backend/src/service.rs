@@ -4,10 +4,7 @@ use crate::{
     statics::{load_env_var, GITHUB_AUTH_QUERY, OPT},
 };
 use actix_web::{
-    http::{
-        header::{CacheControl, CacheDirective, LOCATION},
-        StatusCode,
-    },
+    http::{header::LOCATION, StatusCode},
     web, Error, HttpResponse,
 };
 use awc::{error::PayloadError, Client, ClientResponse};
@@ -271,10 +268,6 @@ impl Service for GitLab {
                                                     )
                                                     .as_str(),
                                                 )
-                                                .set(CacheControl(vec![
-                                                    CacheDirective::Public,
-                                                    CacheDirective::MaxAge(0),
-                                                ]))
                                                 .finish()
                                         })
                                         .from_err(),

@@ -80,10 +80,6 @@ fn redirect<T: Service>(
                                 LOCATION,
                                 T::redirect_url(&data.user, &data.repo, &head, &data.file).as_str(),
                             )
-                            .set(CacheControl(vec![
-                                CacheDirective::Public,
-                                CacheDirective::MaxAge(0),
-                            ]))
                             .finish()
                     }));
                 }
