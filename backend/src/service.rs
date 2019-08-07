@@ -108,6 +108,7 @@ pub(crate) trait Service: Sized {
                                 )
                                 .as_str(),
                             )
+                            .set(CacheControl(vec![CacheDirective::Private]))
                             .finish()
                     })
                     .from_err(),
