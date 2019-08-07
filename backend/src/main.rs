@@ -7,8 +7,6 @@ extern crate serde_derive;
 #[macro_use]
 extern crate structopt;
 
-// TODO: cow instead of string
-
 mod cache;
 mod cdn;
 mod config;
@@ -51,7 +49,7 @@ fn proxy_file<T: Service>(
             .from_err()
             .and_then(move |response| match response.status() {
                 StatusCode::OK => {
-                    let mime = mime_guess::guess_mime_type(&data.file);
+                    let mime = mime_guess::guess_mime_type(&*data.file);
                     Ok(HttpResponse::Ok()
                         .content_type(mime.to_string().as_str())
                         .set(CacheControl(vec![
@@ -134,7 +132,7 @@ fn serve_gist(
         .from_err()
         .and_then(move |response| match response.status() {
             StatusCode::OK => {
-                let mime = mime_guess::guess_mime_type(&data.file);
+                let mime = mime_guess::guess_mime_type(&*data.file);
                 Ok(HttpResponse::Ok()
                     .content_type(mime.to_string().as_str())
                     .set(CacheControl(vec![
