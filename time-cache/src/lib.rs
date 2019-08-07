@@ -44,7 +44,7 @@ where
 
     pub fn clear(&mut self) {
         let now = Instant::now();
-        self.cache.retain(|_, v| !Self::is_valid(now, v));
+        self.cache.retain(|_, v| Self::is_valid(now, v))
     }
 
     fn is_valid(when: Instant, entry: &CacheEntry<V>) -> bool {
