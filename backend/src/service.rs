@@ -1,5 +1,6 @@
 use crate::{
-    data::FilePath,
+    cache,
+    data::{FilePath, State},
     statics::{load_env_var, GITHUB_AUTH_QUERY, OPT},
 };
 use actix_web::{
@@ -62,10 +63,12 @@ impl ApiResponse for GitLabApiResponse {
     }
 }
 
-pub(crate) trait Service {
+pub(crate) trait Service: Sized {
     type Response: for<'de> serde::Deserialize<'de> + ApiResponse + 'static;
 
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String;
+
+    fn cache_service() -> cache::Service;
 
     fn api_url(path: &FilePath) -> String;
 
@@ -77,6 +80,7 @@ pub(crate) trait Service {
         mut response: ClientResponse<S>,
         data: web::Path<FilePath>,
         _client: web::Data<Client>,
+        cache: State,
     ) -> Box<dyn Future<Item = HttpResponse, Error = Error>>
     where
         S: 'static + Stream<Item = Bytes, Error = PayloadError>,
@@ -86,6 +90,10 @@ pub(crate) trait Service {
                 response
                     .json::<Self::Response>()
                     .map(move |resp| {
+                        if let Ok(mut cache) = cache.write() {
+                            let key = data.to_key::<Self>();
+                            cache.store(key, resp.commit_ref().to_string());
+                        }
                         HttpResponse::SeeOther()
                             .header(
                                 LOCATION,
@@ -126,6 +134,10 @@ impl Github {
 impl Service for Github {
     type Response = GitHubApiResponse;
 
+    fn cache_service() -> cache::Service {
+        cache::Service::GitHub
+    }
+
     fn path() -> &'static str {
         "github"
     }
@@ -157,6 +169,10 @@ pub(crate) struct Bitbucket;
 impl Service for Bitbucket {
     type Response = BitbucketApiResponse;
 
+    fn cache_service() -> cache::Service {
+        cache::Service::Bitbucket
+    }
+
     fn path() -> &'static str {
         "bitbucket"
     }
@@ -185,6 +201,10 @@ pub(crate) struct GitLab;
 impl Service for GitLab {
     type Response = GitLabApiResponse;
 
+    fn cache_service() -> cache::Service {
+        cache::Service::GitLab
+    }
+
     fn path() -> &'static str {
         "gitlab"
     }
@@ -209,6 +229,7 @@ impl Service for GitLab {
         mut response: ClientResponse<S>,
         data: web::Path<FilePath>,
         client: web::Data<Client>,
+        cache: State,
     ) -> Box<dyn Future<Item = HttpResponse, Error = Error>>
     where
         S: 'static + Stream<Item = Bytes, Error = PayloadError>,
@@ -232,6 +253,10 @@ impl Service for GitLab {
                                     respo
                                         .json::<Self::Response>()
                                         .map(move |resp| {
+                                            if let Ok(mut cache) = cache.write() {
+                                                let key = data.to_key::<Self>();
+                                                cache.store(key, resp.commit_ref().to_string());
+                                            }
                                             HttpResponse::SeeOther()
                                                 .header(
                                                     LOCATION,

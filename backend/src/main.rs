@@ -7,6 +7,9 @@ extern crate serde_derive;
 #[macro_use]
 extern crate structopt;
 
+// TODO: cow instead of string
+
+mod cache;
 mod cdn;
 mod config;
 mod data;
@@ -15,19 +18,21 @@ mod service;
 mod statics;
 
 use crate::{
+    cache::{Cache, CacheResult},
     cdn::Cloudflare,
-    data::FilePath,
+    data::{FilePath, State},
     error::Result,
     service::{Bitbucket, GitLab, Github, Service},
     statics::{FAVICON, OPT},
 };
 use actix_files;
 use actix_web::{
-    http::header::{self, CacheControl, CacheDirective},
+    http::header::{self, CacheControl, CacheDirective, LOCATION},
     middleware, web, App, Error, HttpResponse, HttpServer,
 };
 use awc::{http::StatusCode, Client};
 use futures::Future;
+use std::sync::{Arc, RwLock};
 
 fn proxy_file<T: Service>(
     client: web::Data<Client>,
@@ -62,26 +67,55 @@ fn proxy_file<T: Service>(
 
 fn redirect<T: Service>(
     client: web::Data<Client>,
+    cache: web::Data<State>,
     data: web::Path<FilePath>,
 ) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
+    let invalid = {
+        if let Ok(cache) = cache.read() {
+            let key = data.to_key::<T>();
+            match cache.get(&key) {
+                CacheResult::Cached(head) => {
+                    let head = head.clone();
+                    return Box::new(futures::future::ok(()).map(move |_| {
+                        HttpResponse::SeeOther()
+                            .header(
+                                LOCATION,
+                                T::redirect_url(&data.user, &data.repo, &head, &data.file).as_str(),
+                            )
+                            .finish()
+                    }));
+                }
+                CacheResult::Invalid => true,
+                CacheResult::Empty => false,
+            }
+        } else {
+            false
+        }
+    };
+    if invalid {
+        if let Ok(mut cache) = cache.write() {
+            cache.clear();
+        }
+    }
     Box::new(
         client
             .get(&T::api_url(&data))
             .header(header::USER_AGENT, statics::USER_AGENT.as_str())
             .send()
             .from_err()
-            .and_then(move |response| T::request_head(response, data, client)),
+            .and_then(move |response| T::request_head(response, data, client, Arc::clone(&cache))),
     )
 }
 
 fn handle_request<T: Service>(
     client: web::Data<Client>,
+    cache: web::Data<State>,
     data: web::Path<FilePath>,
 ) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
     if data.commit.len() == 40 {
         proxy_file::<T>(client, data)
     } else {
-        redirect::<T>(client, data)
+        redirect::<T>(client, cache, data)
     }
 }
 
@@ -124,19 +158,49 @@ fn favicon32() -> HttpResponse {
         .body(FAVICON)
 }
 
-fn purge_cache<T: Service>(
+fn purge_cache<T: 'static + Service>(
     client: web::Data<Client>,
-    file: web::Path<String>,
-) -> impl Future<Item = HttpResponse, Error = Error> {
-    Cloudflare::purge_cache::<T>(&client, &file)
-        .map(|success| HttpResponse::Ok().body(success.to_string()))
+    cache: web::Data<State>,
+    data: web::Path<FilePath>,
+) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
+    if data.commit.len() == 40 {
+        Box::new(
+            Cloudflare::purge_cache::<T>(&client, &data.path())
+                .map(|success| HttpResponse::Ok().body(success.to_string())),
+        )
+    } else {
+        let cache = cache.clone();
+        Box::new(futures::future::ok(()).map(move |_| {
+            if let Ok(mut cache) = cache.write() {
+                let key = data.to_key::<T>();
+                cache.invalidate(&key);
+                HttpResponse::Ok().finish()
+            } else {
+                HttpResponse::InternalServerError().finish()
+            }
+        }))
+    }
 }
 
-fn dbg<T: Service>(
+fn dbg<T: 'static + Service>(
     client: web::Data<Client>,
-    file: web::Path<String>,
-) -> impl Future<Item = HttpResponse, Error = Error> {
-    Cloudflare::dbg::<T>(&client, &file)
+    cache: web::Data<State>,
+    data: web::Path<FilePath>,
+) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
+    if data.commit.len() == 40 {
+        Box::new(Cloudflare::dbg::<T>(&client, &data.path()))
+    } else {
+        let cache = cache.clone();
+        Box::new(futures::future::ok(()).map(move |_| {
+            if let Ok(mut cache) = cache.write() {
+                let key = data.to_key::<T>();
+                cache.invalidate(&key);
+                HttpResponse::Ok().finish()
+            } else {
+                HttpResponse::InternalServerError().finish()
+            }
+        }))
+    }
 }
 
 fn main() -> Result<()> {
@@ -144,9 +208,11 @@ fn main() -> Result<()> {
     pretty_env_logger::init();
     openssl_probe::init_ssl_cert_env_vars();
 
+    let state: State = Arc::new(RwLock::new(Cache::new()));
     Ok(HttpServer::new(move || {
         App::new()
             .data(Client::new())
+            .data(state.clone())
             .wrap(middleware::Logger::default())
             .wrap(middleware::NormalizePath)
             .service(favicon32)
@@ -154,13 +220,16 @@ fn main() -> Result<()> {
                 "/github/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<Github>),
             )
-            .route("/github/{file:.*}", web::delete().to_async(dbg::<Github>))
+            .route(
+                "/github/{user}/{repo}/{commit}/{file:.*}",
+                web::delete().to_async(dbg::<Github>),
+            )
             .route(
                 "/bitbucket/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(handle_request::<Bitbucket>),
             )
             .route(
-                "/bitbucket//{file:.*}",
+                "/bitbucket/{user}/{repo}/{commit}/{file:.*}",
                 web::delete().to_async(dbg::<Bitbucket>),
             )
             .route(
@@ -171,7 +240,10 @@ fn main() -> Result<()> {
                 "/gist/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(serve_gist),
             )
-            .route("/gitlab/{file:.*}", web::delete().to_async(dbg::<GitLab>))
+            .route(
+                "/gitlab/{user}/{repo}/{commit}/{file:.*}",
+                web::delete().to_async(dbg::<GitLab>),
+            )
             .service(actix_files::Files::new("/", "./public").index_file("index.html"))
     })
     .workers(OPT.workers)
