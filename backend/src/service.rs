@@ -1,6 +1,5 @@
 use crate::{
-    cache,
-    data::{FilePath, State},
+    data::{self, FilePath, State},
     statics::{load_env_var, GITHUB_AUTH_QUERY, OPT, REDIRECT_AGE},
 };
 use actix_web::{
@@ -71,7 +70,7 @@ pub(crate) trait Service: Sized {
 
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String;
 
-    fn cache_service() -> cache::Service;
+    fn cache_service() -> data::Service;
 
     fn api_url(path: &FilePath) -> String;
 
@@ -141,8 +140,8 @@ impl Github {
 impl Service for Github {
     type Response = GitHubApiResponse;
 
-    fn cache_service() -> cache::Service {
-        cache::Service::GitHub
+    fn cache_service() -> data::Service {
+        data::Service::GitHub
     }
 
     fn path() -> &'static str {
@@ -176,8 +175,8 @@ pub(crate) struct Bitbucket;
 impl Service for Bitbucket {
     type Response = BitbucketApiResponse;
 
-    fn cache_service() -> cache::Service {
-        cache::Service::Bitbucket
+    fn cache_service() -> data::Service {
+        data::Service::Bitbucket
     }
 
     fn path() -> &'static str {
@@ -208,8 +207,8 @@ pub(crate) struct GitLab;
 impl Service for GitLab {
     type Response = GitLabApiResponse;
 
-    fn cache_service() -> cache::Service {
-        cache::Service::GitLab
+    fn cache_service() -> data::Service {
+        data::Service::GitLab
     }
 
     fn path() -> &'static str {

@@ -1,8 +1,6 @@
-use crate::{
-    cache::{Cache, Key},
-    service::Service,
-};
+use crate::service;
 use std::sync::{Arc, RwLock};
+use time_cache::Cache;
 
 pub(crate) type State = Arc<RwLock<Cache<Key, String>>>;
 
@@ -19,12 +17,33 @@ impl FilePath {
         format!("{}/{}/{}/{}", self.user, self.repo, self.commit, self.file)
     }
 
-    pub(crate) fn to_key<T: Service>(&self) -> Key {
+    pub(crate) fn to_key<T: service::Service>(&self) -> Key {
         Key::new(
             T::cache_service(),
             self.user.clone(),
             self.repo.clone(),
             self.commit.clone(),
         )
+    }
+}
+
+#[derive(Eq, PartialEq, Hash, Debug)]
+pub(crate) struct Key(Service, Arc<String>, Arc<String>, Arc<String>);
+
+#[derive(Eq, PartialEq, Hash, Debug)]
+pub(crate) enum Service {
+    GitHub,
+    GitLab,
+    Bitbucket,
+}
+
+impl Key {
+    pub(crate) fn new(
+        service: Service,
+        user: Arc<String>,
+        repo: Arc<String>,
+        branch: Arc<String>,
+    ) -> Self {
+        Key(service, user, repo, branch)
     }
 }

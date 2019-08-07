@@ -659,6 +659,7 @@ dependencies = [
  "serde_derive 1.0.97 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.2.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time-cache 0.1.0",
 ]
 
 [[package]]
@@ -1601,6 +1602,10 @@ dependencies = [
  "redox_syscall 0.1.56 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "time-cache"
+version = "0.1.0"
 
 [[package]]
 name = "tokio-codec"
