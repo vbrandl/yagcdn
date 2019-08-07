@@ -16,7 +16,6 @@ mod service;
 mod statics;
 
 use crate::{
-    cache::{Cache, CacheResult},
     cdn::Cloudflare,
     data::{FilePath, State},
     error::Result,
@@ -31,6 +30,7 @@ use actix_web::{
 use awc::{http::StatusCode, Client};
 use futures::Future;
 use std::sync::{Arc, RwLock};
+use time_cache::{Cache, CacheResult};
 
 fn proxy_file<T: Service>(
     client: web::Data<Client>,
@@ -210,7 +210,7 @@ fn main() -> Result<()> {
     pretty_env_logger::init();
     openssl_probe::init_ssl_cert_env_vars();
 
-    let state: State = Arc::new(RwLock::new(Cache::new()));
+    let state: State = Arc::new(RwLock::new(Cache::new(REDIRECT_AGE)));
     Ok(HttpServer::new(move || {
         App::new()
             .data(Client::new())
