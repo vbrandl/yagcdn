@@ -21,7 +21,7 @@ use crate::{
     data::{FilePath, State},
     error::Result,
     service::{Bitbucket, GitLab, Github, Service},
-    statics::{FAVICON, OPT},
+    statics::{FAVICON, OPT, REDIRECT_AGE},
 };
 use actix_files;
 use actix_web::{
@@ -80,7 +80,10 @@ fn redirect<T: Service>(
                                 LOCATION,
                                 T::redirect_url(&data.user, &data.repo, &head, &data.file).as_str(),
                             )
-                            .set(CacheControl(vec![CacheDirective::Private]))
+                            .set(CacheControl(vec![
+                                CacheDirective::Public,
+                                CacheDirective::MaxAge(REDIRECT_AGE.as_secs() as u32),
+                            ]))
                             .finish()
                     }));
                 }

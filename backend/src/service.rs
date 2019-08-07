@@ -108,7 +108,10 @@ pub(crate) trait Service: Sized {
                                 )
                                 .as_str(),
                             )
-                            .set(CacheControl(vec![CacheDirective::Private]))
+                            .set(CacheControl(vec![
+                                CacheDirective::Public,
+                                CacheDirective::MaxAge(REDIRECT_AGE.as_secs() as u32),
+                            ]))
                             .finish()
                     })
                     .from_err(),
@@ -272,7 +275,12 @@ impl Service for GitLab {
                                                     )
                                                     .as_str(),
                                                 )
-                                                .set(CacheControl(vec![CacheDirective::Private]))
+                                                .set(CacheControl(vec![
+                                                    CacheDirective::Public,
+                                                    CacheDirective::MaxAge(
+                                                        REDIRECT_AGE.as_secs() as u32
+                                                    ),
+                                                ]))
                                                 .finish()
                                         })
                                         .from_err(),

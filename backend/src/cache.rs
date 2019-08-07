@@ -1,3 +1,4 @@
+use crate::statics::REDIRECT_AGE;
 use std::{
     collections::HashMap,
     hash::Hash,
@@ -17,7 +18,7 @@ where
     pub(crate) fn new() -> Self {
         Self {
             cache: HashMap::new(),
-            duration: Duration::from_secs(5 * 60),
+            duration: REDIRECT_AGE,
         }
     }
 

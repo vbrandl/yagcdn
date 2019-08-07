@@ -1,8 +1,9 @@
 use crate::{config::Opt, service::Github};
-use std::env;
+use std::{env, time::Duration};
 use structopt::StructOpt;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub(crate) const REDIRECT_AGE: Duration = Duration::from_secs(5 * 60);
 pub(crate) const FAVICON: &[u8] = include_bytes!("../static/favicon32.png");
 lazy_static! {
     pub(crate) static ref USER_AGENT: String = format!("gitache/{}", VERSION);
