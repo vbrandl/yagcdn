@@ -16,8 +16,9 @@ RUN ./build.sh
 
 FROM ekidd/rust-musl-builder:stable as backend
 
+USER rust
 # create new cargo project
-RUN USER=rust cargo new --bin gitache
+RUN cargo new --bin gitache
 RUN cargo new --lib time-cache
 WORKDIR /home/rust/src/gitache
 # copy build config
