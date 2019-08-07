@@ -1,7 +1,7 @@
 use crate::{
     cache,
     data::{FilePath, State},
-    statics::{load_env_var, GITHUB_AUTH_QUERY, OPT},
+    statics::{load_env_var, GITHUB_AUTH_QUERY, OPT, REDIRECT_AGE},
 };
 use actix_web::{
     http::{
