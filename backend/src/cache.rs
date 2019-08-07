@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     hash::Hash,
+    sync::Arc,
     time::{Duration, Instant},
 };
 
@@ -67,7 +68,7 @@ impl<T> CacheEntry<T> {
 }
 
 #[derive(Eq, PartialEq, Hash, Debug)]
-pub(crate) struct Key(Service, String, String, String);
+pub(crate) struct Key(Service, Arc<String>, Arc<String>, Arc<String>);
 
 #[derive(Eq, PartialEq, Hash, Debug)]
 pub(crate) enum Service {
@@ -77,7 +78,12 @@ pub(crate) enum Service {
 }
 
 impl Key {
-    pub(crate) fn new(service: Service, user: String, repo: String, branch: String) -> Self {
+    pub(crate) fn new(
+        service: Service,
+        user: Arc<String>,
+        repo: Arc<String>,
+        branch: Arc<String>,
+    ) -> Self {
         Key(service, user, repo, branch)
     }
 }

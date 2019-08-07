@@ -8,10 +8,10 @@ pub(crate) type State = Arc<RwLock<Cache<Key, String>>>;
 
 #[derive(Deserialize, Debug)]
 pub(crate) struct FilePath {
-    pub(crate) user: String,
-    pub(crate) repo: String,
-    pub(crate) commit: String,
-    pub(crate) file: String,
+    pub(crate) user: Arc<String>,
+    pub(crate) repo: Arc<String>,
+    pub(crate) commit: Arc<String>,
+    pub(crate) file: Arc<String>,
 }
 
 impl FilePath {
