@@ -148,10 +148,83 @@ impl<T> CacheEntry<T> {
         CacheEntry(Instant::now() + duration, value)
     }
 }
+
 #[cfg(test)]
 mod tests {
+    use super::{Cache, CacheResult};
+    use std::time::Duration;
+
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    fn always_invalid() {
+        let key = 0;
+        let value = 1;
+        let mut cache = Cache::new(Duration::from_secs(0));
+        assert_eq!(CacheResult::Empty, cache.get(&key));
+        cache.store(key, value);
+        assert_eq!(CacheResult::Invalid, cache.get(&key));
+    }
+
+    #[test]
+    fn valid() {
+        let key = 0;
+        let value = 1;
+        let mut cache = Cache::new(Duration::from_secs(100));
+        assert_eq!(CacheResult::Empty, cache.get(&key));
+        cache.store(key, value);
+        assert_eq!(CacheResult::Cached(&value), cache.get(&key));
+    }
+
+    #[test]
+    fn wait_for_invalidation() {
+        let key = 0;
+        let value = 1;
+        let dur = Duration::from_millis(500);
+        let mut cache = Cache::new(dur);
+        assert_eq!(CacheResult::Empty, cache.get(&key));
+        cache.store(key, value);
+        assert_eq!(CacheResult::Cached(&value), cache.get(&key));
+        std::thread::sleep(dur);
+        assert_eq!(CacheResult::Invalid, cache.get(&key));
+    }
+
+    #[test]
+    fn invalidate() {
+        let key = 0;
+        let value = 1;
+        let dur = Duration::from_secs(100);
+        let mut cache = Cache::new(dur);
+        assert_eq!(CacheResult::Empty, cache.get(&key));
+        cache.store(key, value);
+        assert_eq!(CacheResult::Cached(&value), cache.get(&key));
+        assert!(cache.invalidate(&key));
+        assert_eq!(CacheResult::Empty, cache.get(&key));
+    }
+
+    #[test]
+    fn invalidate_wait() {
+        let key = 0;
+        let value = 1;
+        let dur = Duration::from_millis(500);
+        let mut cache = Cache::new(dur);
+        assert_eq!(CacheResult::Empty, cache.get(&key));
+        cache.store(key, value);
+        assert_eq!(CacheResult::Cached(&value), cache.get(&key));
+        std::thread::sleep(dur);
+        assert_eq!(CacheResult::Invalid, cache.get(&key));
+        assert!(cache.invalidate(&key));
+        assert_eq!(CacheResult::Empty, cache.get(&key));
+    }
+
+    #[test]
+    fn clear() {
+        let key = 0;
+        let value = 1;
+        let dur = Duration::from_secs(0);
+        let mut cache = Cache::new(dur);
+        assert_eq!(CacheResult::Empty, cache.get(&key));
+        cache.store(key, value);
+        assert_eq!(CacheResult::Invalid, cache.get(&key));
+        cache.clear();
+        assert_eq!(CacheResult::Empty, cache.get(&key));
     }
 }
