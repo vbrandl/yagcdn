@@ -48,7 +48,7 @@ fn proxy_file<T: Service>(
         .from_err()
         .and_then(move |response| match response.status() {
             StatusCode::OK => {
-                let mime = mime_guess::guess_mime_type(&*data.file);
+                let mime = mime_guess::from_path(&*data.file).first_or_octet_stream();
                 Ok(HttpResponse::Ok()
                     .content_type(mime.to_string().as_str())
                     .set(CacheControl(vec![
@@ -127,7 +127,7 @@ fn serve_gist(
         .from_err()
         .and_then(move |response| match response.status() {
             StatusCode::OK => {
-                let mime = mime_guess::guess_mime_type(&*data.file);
+                let mime = mime_guess::from_path(&*data.file).first_or_octet_stream();
                 Ok(HttpResponse::Ok()
                     .content_type(mime.to_string().as_str())
                     .set(CacheControl(vec![
