@@ -18,13 +18,11 @@ pub(crate) trait ApiResponse {
 }
 
 #[derive(Deserialize)]
-pub(crate) struct GitHubApiResponse {
-    pub(crate) sha: String,
-}
+pub(crate) struct GitHubApiResponse(String);
 
 impl ApiResponse for GitHubApiResponse {
     fn commit_ref(&self) -> &str {
-        &self.sha
+        &self.0
     }
 }
 
@@ -75,6 +73,10 @@ pub(crate) trait Service: Sized {
     fn api_url(path: &FilePath) -> String;
 
     fn path() -> &'static str;
+
+    fn api_accept() -> Option<&'static str> {
+        None
+    }
 
     fn redirect_url(user: &str, repo: &str, commit: &str, file: &str) -> String;
 
@@ -148,6 +150,10 @@ impl Service for Github {
         "github"
     }
 
+    fn api_accept() -> Option<&'static str> {
+        Some("application/vnd.github.3.sha")
+    }
+
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
         format!(
             "https://raw.githubusercontent.com/{}/{}/{}/{}",
@@ -167,6 +173,45 @@ impl Service for Github {
 
     fn redirect_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
         format!("/github/{}/{}/{}/{}", user, repo, commit, file)
+    }
+
+    fn request_head<S>(
+        mut response: ClientResponse<S>,
+        data: web::Path<FilePath>,
+        _client: web::Data<Client>,
+        cache: State,
+    ) -> Box<dyn Future<Item = HttpResponse, Error = Error>>
+    where
+        S: 'static + Stream<Item = Bytes, Error = PayloadError>,
+    {
+        match response.status() {
+            StatusCode::OK => Box::new(
+                response
+                    .body()
+                    // .json::<Self::Response>()
+                    .map(move |resp| {
+                        let head = String::from_utf8_lossy(resp.as_ref());
+                        if let Ok(mut cache) = cache.write() {
+                            let key = data.to_key::<Self>();
+                            cache.store(key, head.to_string());
+                        }
+                        HttpResponse::SeeOther()
+                            .header(
+                                LOCATION,
+                                Self::redirect_url(&data.user, &data.repo, &head, &data.file)
+                                    .as_str(),
+                            )
+                            .set(CacheControl(vec![
+                                CacheDirective::Public,
+                                CacheDirective::MaxAge(REDIRECT_AGE.as_secs() as u32),
+                            ]))
+                            .finish()
+                    })
+                    .from_err(),
+            ) as Box<dyn Future<Item = HttpResponse, Error = Error>>,
+            code => Box::new(futures::future::ok(HttpResponse::build(code).finish()))
+                as Box<dyn Future<Item = HttpResponse, Error = Error>>,
+        }
     }
 }
 
