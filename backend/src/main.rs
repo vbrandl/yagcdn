@@ -35,32 +35,30 @@ use time_cache::{Cache, CacheResult};
 fn proxy_file<T: Service>(
     client: web::Data<Client>,
     data: web::Path<FilePath>,
-) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
-    Box::new(
-        client
-            .get(&T::raw_url(
-                &data.user,
-                &data.repo,
-                &data.commit,
-                &data.file,
-            ))
-            .header(header::USER_AGENT, statics::USER_AGENT.as_str())
-            .send()
-            .from_err()
-            .and_then(move |response| match response.status() {
-                StatusCode::OK => {
-                    let mime = mime_guess::guess_mime_type(&*data.file);
-                    Ok(HttpResponse::Ok()
-                        .content_type(mime.to_string().as_str())
-                        .set(CacheControl(vec![
-                            CacheDirective::Public,
-                            CacheDirective::MaxAge(2_592_000_000),
-                        ]))
-                        .streaming(response))
-                }
-                code => Ok(HttpResponse::build(code).finish()),
-            }),
-    )
+) -> impl Future<Item = HttpResponse, Error = Error> {
+    client
+        .get(&T::raw_url(
+            &data.user,
+            &data.repo,
+            &data.commit,
+            &data.file,
+        ))
+        .header(header::USER_AGENT, statics::USER_AGENT.as_str())
+        .send()
+        .from_err()
+        .and_then(move |response| match response.status() {
+            StatusCode::OK => {
+                let mime = mime_guess::guess_mime_type(&*data.file);
+                Ok(HttpResponse::Ok()
+                    .content_type(mime.to_string().as_str())
+                    .set(CacheControl(vec![
+                        CacheDirective::Public,
+                        CacheDirective::MaxAge(2_592_000_000),
+                    ]))
+                    .streaming(response))
+            }
+            code => Ok(HttpResponse::build(code).finish()),
+        })
 }
 
 fn redirect<T: Service>(
@@ -109,18 +107,6 @@ fn redirect<T: Service>(
     )
 }
 
-fn handle_request<T: Service>(
-    client: web::Data<Client>,
-    cache: web::Data<State>,
-    data: web::Path<FilePath>,
-) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
-    if data.commit.len() == 40 {
-        proxy_file::<T>(client, data)
-    } else {
-        redirect::<T>(client, cache, data)
-    }
-}
-
 fn serve_gist(
     client: web::Data<Client>,
     data: web::Path<FilePath>,
@@ -160,49 +146,28 @@ fn favicon32() -> HttpResponse {
         .body(FAVICON)
 }
 
-fn purge_cache<T: 'static + Service>(
-    client: web::Data<Client>,
+fn purge_local_cache<T: 'static + Service>(
     cache: web::Data<State>,
     data: web::Path<FilePath>,
-) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
-    if data.commit.len() == 40 {
-        Box::new(
-            Cloudflare::purge_cache::<T>(&client, &data.path())
-                .map(|success| HttpResponse::Ok().body(success.to_string())),
-        )
-    } else {
-        let cache = cache.clone();
-        Box::new(futures::future::ok(()).map(move |_| {
-            if let Ok(mut cache) = cache.write() {
-                let key = data.to_key::<T>();
-                cache.invalidate(&key);
-                HttpResponse::Ok().finish()
-            } else {
-                HttpResponse::InternalServerError().finish()
-            }
-        }))
-    }
+) -> impl Future<Item = HttpResponse, Error = Error> {
+    let cache = cache.clone();
+    futures::future::ok(()).map(move |_| {
+        if let Ok(mut cache) = cache.write() {
+            let key = data.to_key::<T>();
+            cache.invalidate(&key);
+            HttpResponse::Ok().finish()
+        } else {
+            HttpResponse::InternalServerError().finish()
+        }
+    })
 }
 
-fn dbg<T: 'static + Service>(
+fn purge_cf_cache<T: 'static + Service>(
     client: web::Data<Client>,
-    cache: web::Data<State>,
     data: web::Path<FilePath>,
-) -> Box<dyn Future<Item = HttpResponse, Error = Error>> {
-    if data.commit.len() == 40 {
-        Box::new(Cloudflare::dbg::<T>(&client, &data.path()))
-    } else {
-        let cache = cache.clone();
-        Box::new(futures::future::ok(()).map(move |_| {
-            if let Ok(mut cache) = cache.write() {
-                let key = data.to_key::<T>();
-                cache.invalidate(&key);
-                HttpResponse::Ok().finish()
-            } else {
-                HttpResponse::InternalServerError().finish()
-            }
-        }))
-    }
+) -> impl Future<Item = HttpResponse, Error = Error> {
+    Cloudflare::purge_cache::<T>(&client, &data.path())
+    // .map(|success| HttpResponse::Ok().body(success.to_string()))
 }
 
 fn main() -> Result<()> {
@@ -219,32 +184,56 @@ fn main() -> Result<()> {
             .wrap(middleware::NormalizePath)
             .service(favicon32)
             .route(
-                "/github/{user}/{repo}/{commit}/{file:.*}",
-                web::get().to_async(handle_request::<Github>),
+                "/github/{user}/{repo}/{commit:[0-9a-fA-F]{40}}/{file:.*}",
+                web::get().to_async(proxy_file::<Github>),
             )
             .route(
                 "/github/{user}/{repo}/{commit}/{file:.*}",
-                web::delete().to_async(dbg::<Github>),
+                web::get().to_async(redirect::<Github>),
+            )
+            .route(
+                "/github/{user}/{repo}/{commit:[0-9a-fA-F]{40}}/{file:.*}",
+                web::delete().to_async(purge_cf_cache::<Github>),
+            )
+            .route(
+                "/github/{user}/{repo}/{commit}/{file:.*}",
+                web::delete().to_async(purge_local_cache::<Github>),
+            )
+            .route(
+                "/bitbucket/{user}/{repo}/{commit:[0-9a-fA-F]{40}}/{file:.*}",
+                web::get().to_async(proxy_file::<Bitbucket>),
             )
             .route(
                 "/bitbucket/{user}/{repo}/{commit}/{file:.*}",
-                web::get().to_async(handle_request::<Bitbucket>),
+                web::get().to_async(redirect::<Bitbucket>),
+            )
+            .route(
+                "/bitbucket/{user}/{repo}/{commit:[0-9a-fA-F]{40}}/{file:.*}",
+                web::delete().to_async(purge_cf_cache::<Bitbucket>),
             )
             .route(
                 "/bitbucket/{user}/{repo}/{commit}/{file:.*}",
-                web::delete().to_async(dbg::<Bitbucket>),
+                web::delete().to_async(purge_local_cache::<Bitbucket>),
+            )
+            .route(
+                "/gitlab/{user}/{repo}/{commit:[0-9a-fA-F]{40}}/{file:.*}",
+                web::get().to_async(proxy_file::<GitLab>),
             )
             .route(
                 "/gitlab/{user}/{repo}/{commit}/{file:.*}",
-                web::get().to_async(handle_request::<GitLab>),
+                web::get().to_async(redirect::<GitLab>),
+            )
+            .route(
+                "/gitlab/{user}/{repo}/{commit:[0-9a-fA-F]{40}}/{file:.*}",
+                web::delete().to_async(purge_cf_cache::<GitLab>),
+            )
+            .route(
+                "/gitlab/{user}/{repo}/{commit}/{file:.*}",
+                web::delete().to_async(purge_cf_cache::<GitLab>),
             )
             .route(
                 "/gist/{user}/{repo}/{commit}/{file:.*}",
                 web::get().to_async(serve_gist),
-            )
-            .route(
-                "/gitlab/{user}/{repo}/{commit}/{file:.*}",
-                web::delete().to_async(dbg::<GitLab>),
             )
             .service(actix_files::Files::new("/", "./public").index_file("index.html"))
     })
