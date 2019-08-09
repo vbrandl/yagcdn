@@ -35,6 +35,7 @@ COPY ./backend/src ./src
 COPY ./time-cache/src /home/rust/src/time-cache/src
 RUN ls /home/rust/src
 RUN ls /home/rust/src/time-cache/src
+RUN cat /home/rust/src/time-cache/src/lib.rs
 # build source code
 RUN cargo build --release
 
