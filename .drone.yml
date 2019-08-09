@@ -1,0 +1,22 @@
+---
+kind: pipeline
+name: build
+
+steps:
+  - name: docker
+    image: plugins/docker
+    settings:
+      repo: vbrandl/yagcdn
+      auto_tag: true
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    ref:
+      - refs/heads/master
+      - refs/tags/v*
+---
+kind: signature
+hmac: e4d2267d9d412733f8d6e771e3c49f058f098dae534491a57d920a5deb25dd02
+
+...
