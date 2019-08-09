@@ -130,7 +130,9 @@ body state =
         , h2 myStyle
             [ text "Caching" ]
         , p myStyle
-            [ text "Files are cached in the CDN for about one year" ]
+            [ text "Files are cached in the CDN for about one year." ]
+        , p myStyle
+            [ text "Redirects for tags and branches are cached for 5 minutes." ]
         , h2 myStyle
             [ text "Invalidating the Cache" ]
         , p myStyle
