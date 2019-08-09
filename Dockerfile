@@ -17,18 +17,18 @@ RUN ./build.sh
 FROM ekidd/rust-musl-builder:stable as backend
 
 # create new cargo project
-RUN USER=rust cargo new --bin gitache
+RUN USER=rust cargo new --bin yagcdn
 RUN USER=rust cargo new --lib time-cache
 # copy build config
-COPY --chown=rust ./backend/Cargo.lock ./gitache/Cargo.lock
-COPY --chown=rust ./backend/Cargo.toml ./gitache/Cargo.toml
+COPY --chown=rust ./backend/Cargo.lock ./yagcdn/Cargo.lock
+COPY --chown=rust ./backend/Cargo.toml ./yagcdn/Cargo.toml
 COPY --chown=rust ./time-cache/Cargo.toml ./time-cache/Cargo.toml
 
-WORKDIR /home/rust/src/gitache
+WORKDIR /home/rust/src/yagcdn
 # build to cache dependencies
 RUN cargo build --release
 # delete build cache to prevent caching issues later on
-RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/gitache-*
+RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/yagcdn*
 RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/time-cache-*
 
 COPY ./backend/static ./static
@@ -49,9 +49,9 @@ COPY --from=linuxkit/ca-certificates:v0.7 / /
 COPY --from=user_builder /etc/passwd /etc/passwd
 USER dummy
 
-COPY --from=backend /home/rust/src/gitache/target/x86_64-unknown-linux-musl/release/gitache /
+COPY --from=backend /home/rust/src/yagcdn/target/x86_64-unknown-linux-musl/release/yagcdn /
 COPY --from=frontend /output/index.html /public/index.html
 COPY --from=frontend /output/scripts /public/scripts
 COPY --from=frontend /output/assets /public/assets
 
-ENTRYPOINT ["/gitache"]
+ENTRYPOINT ["/yagcdn"]

@@ -3,7 +3,7 @@ module Data exposing (Provider(..), Url, hostname, pathSeparator, toUrl)
 
 hostname : String
 hostname =
-    "https://gitcdn.tk/"
+    "https://yagcdn.tk/"
 
 
 type Provider

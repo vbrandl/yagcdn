@@ -1,6 +1,6 @@
-# Gitache
+# YaGCDN
 
-Gitache is a web service that serves raw files from GitHub, GitLab and Bitbucket
+YaGCDN is a web service that serves raw files from GitHub, GitLab and Bitbucket
 with the proper `Content-Type` headers. Requests to a branch will be redirected
 to the branches `HEAD`. Requests to a specific commit will also set long time
 cache headers, so the service can be put behind a CDN like Cloudflare.
@@ -20,7 +20,7 @@ exposing port `8080`.
 
 ## API Limits
 
-To get the `HEAD` of a requested branch, Gitache sends a request to the
+To get the `HEAD` of a requested branch, YaGCDN sends a request to the
 requested service's API. To prevent running into rate limiting issues with the
 GitHub API, an OAuth2 App should be created and the client ID and secret can be
 set via the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` environment variables.
@@ -34,4 +34,4 @@ set via the `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` environment variables.
 | `CF_ZONE_IDENT`        | `--cf-zone`      | Cloudflare Zone identifier      |
 | `CF_AUTH_USER`         | `--cf-auth-user` | CF API User (`X-Auth-Email`)    |
 | `CF_AUTH_KEY`          | `--cf-auth-key`  | CF API Key (`X-Auth-Key`)       |
-| `HOSTNAME`             | `--hostname`     | Hostname (default: `gitcdn.tk`) |
+| `YAGCDN_HOSTNAME`      | `--hostname`     | Hostname (default: `yagcdn.tk`) |

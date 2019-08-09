@@ -1,8 +1,8 @@
 version: '2'
 
 services:
-  gitache:
-    build: ./
+  yagcdn:
+    image: vbrandl/yagcdn:latest
     restart: always
     environment:
       - CF_ZONE_IDENT=${CF_ZONE_IDENT}

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
-js="gitcdn.js"
-min="gitcdn.min.js"
+js="yagcdn.js"
+min="yagcdn.min.js"
 outdir="./output/"
 scriptdir="${outdir}scripts/"
 
@@ -24,7 +24,7 @@ sha1() {
 
 rename_with_hash() {
   sha1=${1}
-  cp ${min} "${scriptdir}/gitcdn-${sha1}.min.js"
+  cp ${min} "${scriptdir}/yagcdn-${sha1}.min.js"
 }
 
 create_index() {
