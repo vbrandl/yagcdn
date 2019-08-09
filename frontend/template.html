@@ -9,11 +9,50 @@
 </head>
 
 <body>
+<section>
+  <header>
+    <h1>GitCDN</h1>
+  </header>
+
+<article>
 <div id="elm-${SHA1}"></div>
 <script src="./scripts/gitcdn-${SHA1}.min.js">
 </script>
 <script>
   var app = Elm.Main.init({ node: document.getElementById("elm-${SHA1}") });
 </script>
+
+<h2>Caching</h2>
+
+<p>Files from a specific commit are cached in the CDN for one year.</p>
+
+<p>Redirects for tags and branches are cached for 5 minutes.</p>
+
+<h2>Invalidating the Cache</h2>
+
+<p>To delete a file from the cache, just request the file via HTTP <code>DELETE</code></p>
+
+</article>
+
+<footer>
+  <nav>
+    <ul>
+      <li>
+        <small>Created by <a href="https://www.vbrandl.net/">Valentin Brandl</a>.</small>
+      </li>
+    </ul>
+  </nav>
+  <nav>
+    <ul>
+      <li>
+        <small><a href="https://git.vbrandl.net/vbrandl/gitache">Repository</a></small>
+      </li>
+      <li>
+        <small><a href="https://opensource.org/licenses/MIT">MIT License</a></small>
+      </li>
+    </ul>
+  </nav>
+</footer>
+</section>
 </body>
 </html>
