@@ -33,6 +33,8 @@ RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/gitache-*
 COPY ./backend/static ./static
 COPY ./backend/src ./src
 COPY ./time-cache/src /home/rust/src/time-cache/src
+RUN ls /home/rust/src
+RUN ls /home/rust/src/time-cache/src
 # build source code
 RUN cargo build --release
 
