@@ -9,8 +9,8 @@ module Main exposing
 
 import Browser
 import Data exposing (Url, hostname, toUrl)
-import Html exposing (Html, div, input)
-import Html.Attributes exposing (placeholder, readonly, style, value)
+import Html exposing (Html, fieldset, input, label)
+import Html.Attributes exposing (for, id, placeholder, readonly, style, value)
 import Html.Events exposing (onInput)
 import Parse exposing (parseUrl)
 
@@ -46,22 +46,19 @@ displayMUrl mUrl =
         |> Maybe.withDefault (hostname ++ "<service>/<user>/<repo>/<gitref>/<file>")
 
 
-myStyle : List (Html.Attribute msg)
+myStyle : List (Html.Attribute msg) -> List (Html.Attribute msg)
 myStyle =
-    [ style "width" "100%" ]
-
-
-myStyle2 : List (Html.Attribute msg) -> List (Html.Attribute msg)
-myStyle2 =
-    List.append myStyle
+    List.append [ style "width" "100%" ]
 
 
 view : Model -> Html Msg
 view state =
-    div myStyle
-        [ input (myStyle2 [ placeholder "GitHub/GitLab/Bitbucket URL", value state.url, onInput UrlChange ])
+    fieldset []
+        [ label [ for "url" ] []
+        , input (myStyle [ id "url", placeholder "GitHub/GitLab/Bitbucket URL", value state.url, onInput UrlChange ])
             []
-        , input (myStyle2 [ readonly True, value (displayMUrl state.parsed) ]) []
+        , label [ for "output" ] []
+        , input (myStyle [ id "output", readonly True, value (displayMUrl state.parsed) ]) []
         ]
 
 
