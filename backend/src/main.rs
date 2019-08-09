@@ -97,11 +97,16 @@ fn redirect<T: Service>(
             cache.clear();
         }
     }
+    let req = client
+        .get(&T::api_url(&data))
+        .header(header::USER_AGENT, statics::USER_AGENT.as_str());
+    let req = if let Some(accept) = T::api_accept() {
+        req.header(header::ACCEPT, accept)
+    } else {
+        req
+    };
     Box::new(
-        client
-            .get(&T::api_url(&data))
-            .header(header::USER_AGENT, statics::USER_AGENT.as_str())
-            .send()
+        req.send()
             .from_err()
             .and_then(move |response| T::request_head(response, data, client, Arc::clone(&cache))),
     )
