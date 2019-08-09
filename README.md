@@ -1,5 +1,9 @@
 # YaGCDN
 
+[![Hits-of-Code](https://hitsofcode.com/github/vbrandl/yagcdn)](https://hitsofcode.com/view/github/vbrandl/yagcdn)
+[![Drone build](https://drone.vbrandl.net/api/badges/vbrandl/yagcdn/status.svg)](https://drone.vbrandl.net/vbrandl/yagcdn)
+[![dependency status](https://deps.rs/repo/github/vbrandl/yagcdn/status.svg)](https://deps.rs/repo/github/vbrandl/yagcdn)
+
 YaGCDN is a web service that serves raw files from GitHub, GitLab and Bitbucket
 with the proper `Content-Type` headers. Requests to a branch will be redirected
 to the branches `HEAD`. Requests to a specific commit will also set long time
