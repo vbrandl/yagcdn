@@ -29,13 +29,11 @@ WORKDIR /home/rust/src/gitache
 RUN cargo build --release
 # delete build cache to prevent caching issues later on
 RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/gitache-*
+RUN rm -r ../target/x86_64-unknown-linux-musl/release/.fingerprint/time_cache-*
 
 COPY ./backend/static ./static
 COPY ./backend/src ./src
-COPY ./time-cache/src /home/rust/src/time-cache/src
-RUN ls /home/rust/src
-RUN ls /home/rust/src/time-cache/src
-RUN cat /home/rust/src/time-cache/src/lib.rs
+COPY ./time-cache/src ../time-cache/src
 # build source code
 RUN cargo build --release
 
