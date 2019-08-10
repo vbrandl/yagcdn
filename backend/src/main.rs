@@ -3,11 +3,12 @@ extern crate actix_web;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
+extern crate log;
+#[macro_use]
 extern crate serde_derive;
 #[macro_use]
 extern crate structopt;
 
-mod cache;
 mod cdn;
 mod config;
 mod data;
@@ -71,6 +72,7 @@ fn redirect<T: Service>(
             let key = data.to_key::<T>();
             match cache.get(&key) {
                 CacheResult::Cached(head) => {
+                    info!("Loading HEAD from cache for {}/{}", T::path(), data.path());
                     let head = head.clone();
                     return Box::new(futures::future::ok(()).map(move |_| {
                         HttpResponse::SeeOther()
@@ -94,6 +96,7 @@ fn redirect<T: Service>(
     };
     if invalid {
         if let Ok(mut cache) = cache.write() {
+            info!("Clearing cache. Removing invalid elements");
             cache.clear();
         }
     }
@@ -158,6 +161,7 @@ fn purge_local_cache<T: 'static + Service>(
     let cache = cache.clone();
     futures::future::ok(()).map(move |_| {
         if let Ok(mut cache) = cache.write() {
+            info!("Invalidating local cache for {}/{}", T::path(), data.path());
             let key = data.to_key::<T>();
             cache.invalidate(&key);
             HttpResponse::Ok().finish()
@@ -176,7 +180,7 @@ fn purge_cf_cache<T: 'static + Service>(
 }
 
 fn main() -> Result<()> {
-    std::env::set_var("RUST_LOG", "actix_server=info,actix_web=trace");
+    std::env::set_var("RUST_LOG", "actix_server=info,actix_web=trace,yagcdn=info");
     pretty_env_logger::init();
     openssl_probe::init_ssl_cert_env_vars();
 
