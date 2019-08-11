@@ -12,6 +12,7 @@ use actix_web::{
 use awc::{error::PayloadError, Client, ClientResponse};
 use bytes::Bytes;
 use futures::{Future, Stream};
+use std::borrow::Cow;
 
 pub(crate) trait ApiResponse {
     fn commit_ref(&self) -> &str;
@@ -126,15 +127,17 @@ pub(crate) trait Service: Sized {
 pub(crate) struct Github;
 
 impl Github {
-    pub(crate) fn auth_query() -> Option<String> {
+    pub(crate) fn auth_query() -> Option<Cow<'static, str>> {
         OPT.github_id
-            .clone()
+            .as_ref()
+            .map(Cow::from)
             .or_else(|| load_env_var("GITHUB_CLIENT_ID"))
             .and_then(|id| {
                 OPT.github_secret
-                    .clone()
+                    .as_ref()
+                    .map(Cow::from)
                     .or_else(|| load_env_var("GITHUB_CLIENT_SECRET"))
-                    .map(|secret| format!("?client_id={}&client_secret={}", id, secret))
+                    .map(|secret| format!("?client_id={}&client_secret={}", id, secret).into())
             })
     }
 }
@@ -167,7 +170,7 @@ impl Service for Github {
             path.user,
             path.repo,
             path.commit,
-            GITHUB_AUTH_QUERY.as_str()
+            GITHUB_AUTH_QUERY.as_ref()
         )
     }
 

@@ -1,5 +1,5 @@
 use crate::{config::Opt, service::Github};
-use std::{env, time::Duration};
+use std::{borrow::Cow, env, time::Duration};
 use structopt::StructOpt;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -8,31 +8,43 @@ pub(crate) const FAVICON: &[u8] = include_bytes!("../static/favicon32.png");
 lazy_static! {
     pub(crate) static ref USER_AGENT: String = format!("yagcdn/{}", VERSION);
     pub(crate) static ref OPT: Opt = Opt::from_args();
-    pub(crate) static ref GITHUB_AUTH_QUERY: String = Github::auth_query().unwrap_or_default();
-    pub(crate) static ref CF_ZONE_IDENT: String = OPT
+    pub(crate) static ref GITHUB_AUTH_QUERY: Cow<'static, str> =
+        Github::auth_query().unwrap_or_default().into();
+    pub(crate) static ref CF_ZONE_IDENT: Cow<'static, str> = OPT
         .cf_zone
-        .clone()
+        .as_ref()
+        .map(Cow::from)
         .or_else(|| load_env_var("CF_ZONE_IDENT"))
-        .expect("Cloudflare zone identifier not set");
-    pub(crate) static ref CF_AUTH_KEY: String = OPT
+        .expect("Cloudflare zone identifier not set")
+        .into();
+    pub(crate) static ref CF_AUTH_KEY: Cow<'static, str> = OPT
         .cf_auth_key
-        .clone()
+        .as_ref()
+        .map(Cow::from)
         .or_else(|| load_env_var("CF_AUTH_KEY"))
-        .expect("Cloudflare auth key not set");
-    pub(crate) static ref CF_AUTH_USER: String = OPT
+        .expect("Cloudflare auth key not set")
+        .into();
+    pub(crate) static ref CF_AUTH_USER: Cow<'static, str> = OPT
         .cf_auth_user
-        .clone()
+        .as_ref()
+        .map(Cow::from)
         .or_else(|| load_env_var("CF_AUTH_USER"))
-        .expect("Cloudflare auth user not set");
-    pub(crate) static ref HOSTNAME: String = OPT
+        .expect("Cloudflare auth user not set")
+        .into();
+    pub(crate) static ref HOSTNAME: Cow<'static, str> = OPT
         .hostname
-        .clone()
+        .as_ref()
+        .map(Cow::from)
         .or_else(|| load_env_var("YAGCDN_HOSTNAME"))
-        .unwrap_or_else(|| "yagcdn.tk".to_string());
+        .unwrap_or_else(|| "yagcdn.tk".into());
 }
 
-pub(crate) fn load_env_var(key: &str) -> Option<String> {
-    env::var(key)
-        .ok()
-        .and_then(|val| if val.is_empty() { None } else { Some(val) })
+pub(crate) fn load_env_var(key: &str) -> Option<Cow<'static, str>> {
+    env::var(key).ok().and_then(|val| {
+        if val.is_empty() {
+            None
+        } else {
+            Some(val.into())
+        }
+    })
 }

@@ -158,7 +158,7 @@ fn purge_local_cache<T: 'static + Service>(
     cache: web::Data<State>,
     data: web::Path<FilePath>,
 ) -> impl Future<Item = HttpResponse, Error = Error> {
-    let cache = cache.clone();
+    let cache = Arc::clone(&cache);
     futures::future::ok(()).map(move |_| {
         if let Ok(mut cache) = cache.write() {
             info!("Invalidating local cache for {}/{}", T::path(), data.path());
@@ -188,7 +188,7 @@ fn main() -> Result<()> {
     Ok(HttpServer::new(move || {
         App::new()
             .data(Client::new())
-            .data(state.clone())
+            .data(Arc::clone(&state))
             .wrap(middleware::Logger::default())
             .wrap(middleware::NormalizePath)
             .service(favicon32)

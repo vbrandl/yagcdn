@@ -24,7 +24,7 @@ impl Cloudflare {
                 "https://api.cloudflare.com/client/v4/zones/{}/purge_cache",
                 Self::identifier()
             ))
-            .header(header::USER_AGENT, statics::USER_AGENT.as_str())
+            .header(header::USER_AGENT, &*statics::USER_AGENT.as_str())
             .header("X-Auth-Email", Self::auth_email())
             .header("X-Auth-Key", Self::auth_key())
             .content_type("application/json")
@@ -36,7 +36,7 @@ impl Cloudflare {
         //         "https://api.cloudflare.com/client/v4/zones/{}/purge_cache",
         //         Self::identifier()
         //     ))
-        //     .header(header::USER_AGENT, statics::USER_AGENT.as_str())
+        //     .header(header::USER_AGENT, statics::USER_AGENT.as_ref())
         //     .header("X-Auth-Email", Self::auth_email())
         //     .header("X-Auth-Key", Self::auth_key())
         //     .content_type("application/json")
@@ -69,7 +69,7 @@ impl CfPurgeRequest {
         Self {
             files: vec![format!(
                 "https://{}/{}/{}",
-                statics::HOSTNAME.as_str(),
+                statics::HOSTNAME.as_ref(),
                 T::path(),
                 file
             )],

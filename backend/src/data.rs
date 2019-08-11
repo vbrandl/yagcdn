@@ -20,9 +20,9 @@ impl FilePath {
     pub(crate) fn to_key<T: service::Service>(&self) -> Key {
         Key::new(
             T::cache_service(),
-            self.user.clone(),
-            self.repo.clone(),
-            self.commit.clone(),
+            Arc::clone(&self.user),
+            Arc::clone(&self.repo),
+            Arc::clone(&self.commit),
         )
     }
 }
