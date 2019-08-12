@@ -1,16 +1,17 @@
 module Parse exposing (parseUrl)
 
 import Data exposing (Provider(..), Url, pathSeparator)
+import Maybe.Extra
 
 
 parseUrl : String -> Maybe Url
 parseUrl url =
     stripProtocol url
         |> splitProvider
-        |> Maybe.andThen splitOffHead
-        |> Maybe.andThen splitOffHead
-        |> Maybe.andThen splitOffHead
-        |> Maybe.andThen splitOffHead
+        |> Maybe.andThen filteredSplit
+        |> Maybe.andThen filteredSplit
+        |> Maybe.andThen filteredSplit
+        |> Maybe.andThen filteredSplit
         |> Maybe.andThen
             (\( ( ( ( ( prov, user ), repo ), separator ), gitref ), file ) ->
                 if
@@ -30,9 +31,15 @@ parseUrl url =
             )
 
 
-splitOffHead : ( a, List b ) -> Maybe ( ( a, b ), List b )
-splitOffHead ( head, tail ) =
+filteredSplit : ( a, List String ) -> Maybe ( ( a, String ), List String )
+filteredSplit =
+    splitOffHead (\s -> not (String.isEmpty s))
+
+
+splitOffHead : (b -> Bool) -> ( a, List b ) -> Maybe ( ( a, b ), List b )
+splitOffHead pred ( head, tail ) =
     splitPart tail
+        |> Maybe.Extra.filter (\( h, _ ) -> pred h)
         |> Maybe.map (\( h, t ) -> ( ( head, h ), t ))
 
 
