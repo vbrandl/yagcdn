@@ -62,11 +62,20 @@ view state =
                 , value state.url
                 , onInput UrlChange
                 , autofocus True
+                , style "border" "1px solid #595959"
                 ]
             )
             []
         , label [ for "output" ] []
-        , input (myStyle [ id "output", readonly True, value (displayMUrl state.parsed) ]) []
+        , input
+            (myStyle
+                [ id "output"
+                , readonly True
+                , value (displayMUrl state.parsed)
+                , style "border" "1px solid #595959"
+                ]
+            )
+            []
         ]
 
 
