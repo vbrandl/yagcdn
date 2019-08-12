@@ -1,5 +1,8 @@
 module ParseTest exposing
-    ( invalidHostInUrlBitbucket
+    ( emptyBranchGitHub
+    , emptyRepoGitHub
+    , emptyUserGitHub
+    , invalidHostInUrlBitbucket
     , invalidHostInUrlGitHub
     , invalidHostInUrlGitLab
     , invalidUrlBitbucket
@@ -64,6 +67,24 @@ invalidUrlGitHub : Test
 invalidUrlGitHub =
     test "Parsing Invalid URL for GitHub"
         (\_ -> Expect.equal Nothing (parseUrl "https://GiThUb.CoM/user"))
+
+
+emptyUserGitHub : Test
+emptyUserGitHub =
+    test "Parsing Empty User URL for GitHub"
+        (\_ -> Expect.equal Nothing (parseUrl "https://GiThUb.CoM//repo/blob/master/README.md"))
+
+
+emptyRepoGitHub : Test
+emptyRepoGitHub =
+    test "Parsing Empty Repo URL for GitHub"
+        (\_ -> Expect.equal Nothing (parseUrl "https://GiThUb.CoM/user//blob/master/README.md"))
+
+
+emptyBranchGitHub : Test
+emptyBranchGitHub =
+    test "Parsing Empty Branch URL for GitHub"
+        (\_ -> Expect.equal Nothing (parseUrl "https://GiThUb.CoM/user/repo/blob//README.md"))
 
 
 invalidHostInUrlGitHub : Test
