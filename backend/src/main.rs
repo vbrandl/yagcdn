@@ -16,6 +16,9 @@ mod error;
 mod service;
 mod statics;
 
+#[cfg(test)]
+mod test;
+
 use crate::{
     cdn::Cloudflare,
     data::{FilePath, State},
