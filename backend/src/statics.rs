@@ -9,28 +9,25 @@ lazy_static! {
     pub(crate) static ref USER_AGENT: String = format!("yagcdn/{}", VERSION);
     pub(crate) static ref OPT: Opt = Opt::from_args();
     pub(crate) static ref GITHUB_AUTH_QUERY: Cow<'static, str> =
-        Github::auth_query().unwrap_or_default().into();
+        Github::auth_query().unwrap_or_default();
     pub(crate) static ref CF_ZONE_IDENT: Cow<'static, str> = OPT
         .cf_zone
         .as_ref()
         .map(Cow::from)
         .or_else(|| load_env_var("CF_ZONE_IDENT"))
-        .expect("Cloudflare zone identifier not set")
-        .into();
+        .expect("Cloudflare zone identifier not set");
     pub(crate) static ref CF_AUTH_KEY: Cow<'static, str> = OPT
         .cf_auth_key
         .as_ref()
         .map(Cow::from)
         .or_else(|| load_env_var("CF_AUTH_KEY"))
-        .expect("Cloudflare auth key not set")
-        .into();
+        .expect("Cloudflare auth key not set");
     pub(crate) static ref CF_AUTH_USER: Cow<'static, str> = OPT
         .cf_auth_user
         .as_ref()
         .map(Cow::from)
         .or_else(|| load_env_var("CF_AUTH_USER"))
-        .expect("Cloudflare auth user not set")
-        .into();
+        .expect("Cloudflare auth user not set");
     pub(crate) static ref HOSTNAME: Cow<'static, str> = OPT
         .hostname
         .as_ref()
