@@ -26,17 +26,19 @@ COPY --chown=rust ./time-cache/Cargo.toml ./time-cache/Cargo.toml
 
 WORKDIR /home/rust/src/yagcdn
 # build to cache dependencies
-RUN cargo build --release
+# RUN cargo build --release
 # delete build cache to prevent caching issues later on
-RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/yagcdn*
-RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/time-cache-*
+# RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/yagcdn*
+# RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/time-cache-*
 
 COPY ./backend/static ./static
 COPY ./backend/src ./src
 COPY ./time-cache/src ../time-cache/src
 # build source code
-RUN cargo build --release
 
+RUN         --mount=type=cache,target=../../usr/local/cargo/registry \
+            --mount=type=cache,target=target \
+            cargo build --release
 
 # create /etc/password for rootless scratch container
 FROM alpine:latest as user_builder
