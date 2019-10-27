@@ -10,7 +10,17 @@ module Main exposing
 import Browser
 import Data exposing (Url, hostname, toUrl)
 import Html exposing (Html, fieldset, input, label)
-import Html.Attributes exposing (autofocus, for, id, placeholder, readonly, style, value)
+import Html.Attributes
+    exposing
+        ( autofocus
+        , for
+        , id
+        , placeholder
+        , readonly
+        , style
+        , type_
+        , value
+        )
 import Html.Events exposing (onInput)
 import Parse exposing (parseUrl)
 
@@ -62,7 +72,7 @@ view state =
                 , value state.url
                 , onInput UrlChange
                 , autofocus True
-                , style "border" "1px solid #595959"
+                , type_ "text"
                 ]
             )
             []
@@ -72,7 +82,7 @@ view state =
                 [ id "output"
                 , readonly True
                 , value (displayMUrl state.parsed)
-                , style "border" "1px solid #595959"
+                , type_ "text"
                 ]
             )
             []
