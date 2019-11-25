@@ -17,7 +17,7 @@ mime_guess = "2.0.1"
 openssl-probe = "0.1.2"
 pretty_env_logger = "0.3.1"
 serde = { version = "1.0.101", features = ["rc"] }
-serde_derive = "1.0.101"
+serde_derive = "1.0.103"
 serde_json = "1.0.41"
 structopt = "0.3.3"
 time-cache = { path = "../time-cache" }
