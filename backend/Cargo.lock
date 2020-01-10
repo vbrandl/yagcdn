@@ -36,7 +36,7 @@ dependencies = [
 
 [[package]]
 name = "actix-files"
-version = "0.1.5"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "actix-http 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1946,7 +1946,7 @@ dependencies = [
 name = "yagcdn"
 version = "0.1.0"
 dependencies = [
- "actix-files 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "actix-files 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "actix-web 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "awc 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1966,7 +1966,7 @@ dependencies = [
 [metadata]
 "checksum actix-codec 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "9f2c11af4b06dc935d8e1b1491dad56bfb32febc49096a91e773f8535c176453"
 "checksum actix-connect 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "9fade9bd4bb46bacde89f1e726c7a3dd230536092712f5d94d77ca57c087fca0"
-"checksum actix-files 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "2803bce03271ad1684bb56489dcb7538c037a909191acdc07d6185bb829e76ac"
+"checksum actix-files 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "095a533b67977f96ab0ff0ae37e75208607abdcc22983b314ddac06651165ec5"
 "checksum actix-http 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)" = "cdf758ebbc4abfecbdc1ce7408601b2d7e0cd7e4766ef61183cd8ce16c194d64"
 "checksum actix-router 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "23224bb527e204261d0291102cb9b52713084def67d94f7874923baefe04ccf7"
 "checksum actix-rt 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "168620aaf00fcd2a16e621790abaf180ef7377c2f8355b4ca5775d6afc778ed8"
