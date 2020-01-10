@@ -10,7 +10,7 @@ actix-files = "0.1.6"
 actix-web = "1.0.9"
 awc = { version = "0.2.8", features = ["default", "rust-tls"] }
 bytes = "0.4.12"
-futures = "0.1.29"
+futures = "0.3.1"
 lazy_static = "1.4.0"
 log = "0.4.8"
 mime_guess = "2.0.1"
