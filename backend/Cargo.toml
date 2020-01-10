@@ -7,7 +7,7 @@ edition = "2018"
 
 [dependencies]
 actix-files = "0.1.6"
-actix-web = "1.0.8"
+actix-web = "1.0.9"
 awc = { version = "0.2.4", features = ["default", "rust-tls"] }
 bytes = "0.4.12"
 futures = "0.1.29"
