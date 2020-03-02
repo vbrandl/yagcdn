@@ -19,5 +19,5 @@ pretty_env_logger = "0.4.0"
 serde = { version = "1.0.104", features = ["rc"] }
 serde_derive = "1.0.104"
 serde_json = "1.0.47"
-structopt = "0.3.9"
+structopt = "0.3.11"
 time-cache = { path = "../time-cache" }
