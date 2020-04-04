@@ -9,7 +9,7 @@ edition = "2018"
 actix-files = "0.1.7"
 actix-web = "1.0.9"
 awc = { version = "0.2.8", features = ["default", "rust-tls"] }
-bytes = "0.4.12"
+bytes = "0.5.4"
 futures = "0.1.29"
 lazy_static = "1.4.0"
 log = "0.4.8"
