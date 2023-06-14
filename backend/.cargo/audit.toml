@@ -1,0 +1,3 @@
+[advisories]
+
+severity_threshold = "low" # CVSS severity ("none", "low", "medium", "high", "critical")
