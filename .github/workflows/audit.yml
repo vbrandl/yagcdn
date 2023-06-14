@@ -12,6 +12,10 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+defaults:
+  run:
+    working-directory: backend
+
 jobs:
   security_audit:
     runs-on: ubuntu-latest
