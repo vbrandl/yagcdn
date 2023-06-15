@@ -126,17 +126,21 @@ pub(crate) struct Github;
 
 impl Github {
     pub(crate) fn auth_query() -> Option<Cow<'static, str>> {
-        OPT.github_id
-            .as_ref()
-            .map(Cow::from)
-            .or_else(|| load_env_var("GITHUB_CLIENT_ID"))
-            .and_then(|id| {
-                OPT.github_secret
-                    .as_ref()
-                    .map(Cow::from)
-                    .or_else(|| load_env_var("GITHUB_CLIENT_SECRET"))
-                    .map(|secret| format!("?client_id={id}&client_secret={secret}").into())
-            })
+        match (
+            OPT.github_id
+                .as_ref()
+                .map(Cow::from)
+                .or_else(|| load_env_var("GITHUB_CLIENT_ID")),
+            OPT.github_secret
+                .as_ref()
+                .map(Cow::from)
+                .or_else(|| load_env_var("GITHUB_CLIENT_SECRET")),
+        ) {
+            (Some(id), Some(secret)) => {
+                Some(format!("?client_id={id}&client_secret={secret}").into())
+            }
+            _ => None,
+        }
     }
 }
 
@@ -283,8 +287,7 @@ impl Service for GitLab {
             req
         };
         let mut response = req.send().await?;
-        let status = response.status();
-        Ok(match status {
+        Ok(match response.status() {
             StatusCode::OK => {
                 let resp = response.json::<GitLabProject>().await?;
                 let repo_id = resp.id;
@@ -295,8 +298,7 @@ impl Service for GitLab {
                     ))
                     .send()
                     .await?;
-                let st = respo.status();
-                match st {
+                match respo.status() {
                     StatusCode::OK => {
                         let resp = respo.json::<Self::Response>().await?;
                         let mut cache = cache.write().await;

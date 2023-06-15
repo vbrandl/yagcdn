@@ -64,7 +64,7 @@ async fn redirect<T: Service>(
                 return Ok(HttpResponse::SeeOther()
                     .insert_header((
                         LOCATION,
-                        T::redirect_url(&data.user, &data.repo, &head, &data.file).as_str(),
+                        T::redirect_url(&data.user, &data.repo, head, &data.file).as_str(),
                     ))
                     .insert_header(CacheControl(vec![
                         CacheDirective::Public,
