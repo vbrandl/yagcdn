@@ -1,0 +1,29 @@
+name: Elm
+
+on:
+  workflow_call:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    - cron: "0 0 * * *"
+
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+    steps:
+    - uses: actions/checkout@v2
+    - run: yarn --frozen-lockfile
+    - name: Add elm-review, elm and elm-format to path
+      run: yarn bin >> $GITHUB_PATH
+    - uses: sparksp/elm-review-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
