@@ -1,17 +1,19 @@
 use crate::{
     data::{self, FilePath, State},
-    statics::{load_env_var, GITHUB_AUTH_QUERY, OPT, REDIRECT_AGE},
+    error::Result,
+    statics::{self, load_env_var, GITHUB_AUTH_QUERY, OPT, REDIRECT_AGE_SECS},
 };
+
 use actix_web::{
     http::{
-        header::{CacheControl, CacheDirective, LOCATION},
+        header::{self, CacheControl, CacheDirective, LOCATION},
         StatusCode,
     },
-    web, Error, HttpResponse,
+    web, HttpResponse,
 };
-use awc::{error::PayloadError, Client, ClientResponse};
-use bytes::Bytes;
-use futures::{Future, Stream};
+use awc::Client;
+use serde::Deserialize;
+
 use std::borrow::Cow;
 
 pub(crate) trait ApiResponse {
@@ -64,6 +66,7 @@ impl ApiResponse for GitLabApiResponse {
     }
 }
 
+#[async_trait::async_trait(?Send)]
 pub(crate) trait Service: Sized {
     type Response: for<'de> serde::Deserialize<'de> + ApiResponse + 'static;
 
@@ -81,46 +84,41 @@ pub(crate) trait Service: Sized {
 
     fn redirect_url(user: &str, repo: &str, commit: &str, file: &str) -> String;
 
-    fn request_head<S>(
-        mut response: ClientResponse<S>,
+    async fn request_head(
         data: web::Path<FilePath>,
-        _client: web::Data<Client>,
-        cache: State,
-    ) -> Box<dyn Future<Item = HttpResponse, Error = Error>>
-    where
-        S: 'static + Stream<Item = Bytes, Error = PayloadError>,
-    {
-        match response.status() {
-            StatusCode::OK => Box::new(
-                response
-                    .json::<Self::Response>()
-                    .map(move |resp| {
-                        if let Ok(mut cache) = cache.write() {
-                            let key = data.to_key::<Self>();
-                            cache.store(key, resp.commit_ref().to_string());
-                        }
-                        HttpResponse::SeeOther()
-                            .header(
-                                LOCATION,
-                                Self::redirect_url(
-                                    &data.user,
-                                    &data.repo,
-                                    resp.commit_ref(),
-                                    &data.file,
-                                )
-                                .as_str(),
-                            )
-                            .set(CacheControl(vec![
-                                CacheDirective::Public,
-                                CacheDirective::MaxAge(REDIRECT_AGE.as_secs() as u32),
-                            ]))
-                            .finish()
-                    })
-                    .from_err(),
-            ) as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-            code => Box::new(futures::future::ok(HttpResponse::build(code).finish()))
-                as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-        }
+        cache: web::Data<State>,
+    ) -> Result<HttpResponse> {
+        let client = Client::default();
+        let req = client
+            .get(&Self::api_url(&data))
+            .insert_header((header::USER_AGENT, statics::USER_AGENT.as_str()));
+        let req = if let Some(accept) = Self::api_accept() {
+            req.insert_header((header::ACCEPT, accept))
+        } else {
+            req
+        };
+        let mut response = req.send().await?;
+        let status = response.status();
+        Ok(match status {
+            StatusCode::OK => {
+                let resp = response.json::<Self::Response>().await?;
+                let mut cache = cache.write().await;
+                let key = data.to_key::<Self>();
+                cache.store(key, resp.commit_ref().to_string());
+                HttpResponse::SeeOther()
+                    .insert_header((
+                        LOCATION,
+                        Self::redirect_url(&data.user, &data.repo, resp.commit_ref(), &data.file)
+                            .as_str(),
+                    ))
+                    .insert_header(CacheControl(vec![
+                        CacheDirective::Public,
+                        CacheDirective::MaxAge(*REDIRECT_AGE_SECS),
+                    ]))
+                    .finish()
+            }
+            code => HttpResponse::build(code).finish(),
+        })
     }
 }
 
@@ -137,11 +135,12 @@ impl Github {
                     .as_ref()
                     .map(Cow::from)
                     .or_else(|| load_env_var("GITHUB_CLIENT_SECRET"))
-                    .map(|secret| format!("?client_id={}&client_secret={}", id, secret).into())
+                    .map(|secret| format!("?client_id={id}&client_secret={secret}").into())
             })
     }
 }
 
+#[async_trait::async_trait(?Send)]
 impl Service for Github {
     type Response = GitHubApiResponse;
 
@@ -158,10 +157,7 @@ impl Service for Github {
     }
 
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
-        format!(
-            "https://raw.githubusercontent.com/{}/{}/{}/{}",
-            user, repo, commit, file
-        )
+        format!("https://raw.githubusercontent.com/{user}/{repo}/{commit}/{file}")
     }
 
     fn api_url(path: &FilePath) -> String {
@@ -175,51 +171,50 @@ impl Service for Github {
     }
 
     fn redirect_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
-        format!("/github/{}/{}/{}/{}", user, repo, commit, file)
+        format!("/github/{user}/{repo}/{commit}/{file}")
     }
 
-    fn request_head<S>(
-        mut response: ClientResponse<S>,
+    async fn request_head(
         data: web::Path<FilePath>,
-        _client: web::Data<Client>,
-        cache: State,
-    ) -> Box<dyn Future<Item = HttpResponse, Error = Error>>
-    where
-        S: 'static + Stream<Item = Bytes, Error = PayloadError>,
-    {
-        match response.status() {
-            StatusCode::OK => Box::new(
-                response
-                    .body()
-                    // .json::<Self::Response>()
-                    .map(move |resp| {
-                        let head = String::from_utf8_lossy(resp.as_ref());
-                        if let Ok(mut cache) = cache.write() {
-                            let key = data.to_key::<Self>();
-                            cache.store(key, head.to_string());
-                        }
-                        HttpResponse::SeeOther()
-                            .header(
-                                LOCATION,
-                                Self::redirect_url(&data.user, &data.repo, &head, &data.file)
-                                    .as_str(),
-                            )
-                            .set(CacheControl(vec![
-                                CacheDirective::Public,
-                                CacheDirective::MaxAge(REDIRECT_AGE.as_secs() as u32),
-                            ]))
-                            .finish()
-                    })
-                    .from_err(),
-            ) as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-            code => Box::new(futures::future::ok(HttpResponse::build(code).finish()))
-                as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-        }
+        cache: web::Data<State>,
+    ) -> Result<HttpResponse> {
+        let client = Client::default();
+        let req = client
+            .get(&Self::api_url(&data))
+            .insert_header((header::USER_AGENT, statics::USER_AGENT.as_str()));
+        let req = if let Some(accept) = Self::api_accept() {
+            req.insert_header((header::ACCEPT, accept))
+        } else {
+            req
+        };
+        let mut response = req.send().await?;
+        let status = response.status();
+        Ok(match status {
+            StatusCode::OK => {
+                let resp = response.body().await?;
+                let head = String::from_utf8_lossy(resp.as_ref());
+                let mut cache = cache.write().await;
+                let key = data.to_key::<Self>();
+                cache.store(key, head.to_string());
+                HttpResponse::SeeOther()
+                    .insert_header((
+                        LOCATION,
+                        Self::redirect_url(&data.user, &data.repo, &head, &data.file).as_str(),
+                    ))
+                    .insert_header(CacheControl(vec![
+                        CacheDirective::Public,
+                        CacheDirective::MaxAge(*REDIRECT_AGE_SECS),
+                    ]))
+                    .finish()
+            }
+            code => HttpResponse::build(code).finish(),
+        })
     }
 }
 
 pub(crate) struct Bitbucket;
 
+#[async_trait::async_trait(?Send)]
 impl Service for Bitbucket {
     type Response = BitbucketApiResponse;
 
@@ -232,10 +227,7 @@ impl Service for Bitbucket {
     }
 
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
-        format!(
-            "https://bitbucket.org/{}/{}/raw/{}/{}",
-            user, repo, commit, file
-        )
+        format!("https://bitbucket.org/{user}/{repo}/raw/{commit}/{file}")
     }
 
     fn api_url(path: &FilePath) -> String {
@@ -246,12 +238,13 @@ impl Service for Bitbucket {
     }
 
     fn redirect_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
-        format!("/bitbucket/{}/{}/{}/{}", user, repo, commit, file)
+        format!("/bitbucket/{user}/{repo}/{commit}/{file}")
     }
 }
 
 pub(crate) struct GitLab;
 
+#[async_trait::async_trait(?Send)]
 impl Service for GitLab {
     type Response = GitLabApiResponse;
 
@@ -264,85 +257,72 @@ impl Service for GitLab {
     }
 
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
-        format!(
-            "https://gitlab.com/{}/{}/raw/{}/{}",
-            user, repo, commit, file
-        )
+        format!("https://gitlab.com/{user}/{repo}/raw/{commit}/{file}")
     }
 
     fn api_url(path: &FilePath) -> String {
-        let repo_pattern = format!("{}/{}", path.user, path.repo).replace("/", "%2F");
-        format!("https://gitlab.com/api/v4/projects/{}", repo_pattern)
+        let repo_pattern = format!("{}/{}", path.user, path.repo).replace('/', "%2F");
+        format!("https://gitlab.com/api/v4/projects/{repo_pattern}")
     }
 
     fn redirect_url(user: &str, repo: &str, commit: &str, file: &str) -> String {
-        format!("/gitlab/{}/{}/{}/{}", user, repo, commit, file)
+        format!("/gitlab/{user}/{repo}/{commit}/{file}")
     }
 
-    fn request_head<S>(
-        mut response: ClientResponse<S>,
+    async fn request_head(
         data: web::Path<FilePath>,
-        client: web::Data<Client>,
-        cache: State,
-    ) -> Box<dyn Future<Item = HttpResponse, Error = Error>>
-    where
-        S: 'static + Stream<Item = Bytes, Error = PayloadError>,
-    {
-        match response.status() {
-            StatusCode::OK => Box::new(
-                response
-                    .json::<GitLabProject>()
-                    .map(move |resp| resp.id)
-                    .from_err()
-                    .and_then(move |repo_id| {
-                        client
-                            .get(format!(
-                                "https://gitlab.com/api/v4/projects/{}/repository/branches/{}",
-                                repo_id, data.commit
-                            ))
-                            .send()
-                            .from_err()
-                            .and_then(|mut respo| match respo.status() {
-                                StatusCode::OK => Box::new(
-                                    respo
-                                        .json::<Self::Response>()
-                                        .map(move |resp| {
-                                            if let Ok(mut cache) = cache.write() {
-                                                let key = data.to_key::<Self>();
-                                                cache.store(key, resp.commit_ref().to_string());
-                                            }
-                                            HttpResponse::SeeOther()
-                                                .header(
-                                                    LOCATION,
-                                                    Self::redirect_url(
-                                                        &data.user,
-                                                        &data.repo,
-                                                        resp.commit_ref(),
-                                                        &data.file,
-                                                    )
-                                                    .as_str(),
-                                                )
-                                                .set(CacheControl(vec![
-                                                    CacheDirective::Public,
-                                                    CacheDirective::MaxAge(
-                                                        REDIRECT_AGE.as_secs() as u32
-                                                    ),
-                                                ]))
-                                                .finish()
-                                        })
-                                        .from_err(),
+        cache: web::Data<State>,
+    ) -> Result<HttpResponse> {
+        let client = Client::default();
+        let req = client
+            .get(&Self::api_url(&data))
+            .insert_header((header::USER_AGENT, statics::USER_AGENT.as_str()));
+        let req = if let Some(accept) = Self::api_accept() {
+            req.insert_header((header::ACCEPT, accept))
+        } else {
+            req
+        };
+        let mut response = req.send().await?;
+        let status = response.status();
+        Ok(match status {
+            StatusCode::OK => {
+                let resp = response.json::<GitLabProject>().await?;
+                let repo_id = resp.id;
+                let mut respo = client
+                    .get(format!(
+                        "https://gitlab.com/api/v4/projects/{}/repository/branches/{}",
+                        repo_id, data.commit
+                    ))
+                    .send()
+                    .await?;
+                let st = respo.status();
+                match st {
+                    StatusCode::OK => {
+                        let resp = respo.json::<Self::Response>().await?;
+                        let mut cache = cache.write().await;
+                        let key = data.to_key::<Self>();
+                        cache.store(key, resp.commit_ref().to_string());
+                        HttpResponse::SeeOther()
+                            .insert_header((
+                                LOCATION,
+                                Self::redirect_url(
+                                    &data.user,
+                                    &data.repo,
+                                    resp.commit_ref(),
+                                    &data.file,
                                 )
-                                    as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-                                code => Box::new(futures::future::ok(
-                                    HttpResponse::build(code).finish(),
-                                ))
-                                    as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-                            })
-                            .from_err()
-                    }),
-            ) as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-            code => Box::new(futures::future::ok(HttpResponse::build(code).finish()))
-                as Box<dyn Future<Item = HttpResponse, Error = Error>>,
-        }
+                                .as_str(),
+                            ))
+                            .insert_header(CacheControl(vec![
+                                CacheDirective::Public,
+                                CacheDirective::MaxAge(*REDIRECT_AGE_SECS),
+                            ]))
+                            .finish()
+                    }
+                    code => HttpResponse::build(code).finish(),
+                }
+            }
+            code => HttpResponse::build(code).finish(),
+        })
     }
 }

@@ -1,8 +1,12 @@
 use crate::service;
-use std::sync::{Arc, RwLock};
-use time_cache::Cache;
 
-pub(crate) type State = Arc<RwLock<Cache<Key, String>>>;
+use serde::Deserialize;
+use time_cache::Cache;
+use tokio::sync::RwLock;
+
+use std::sync::Arc;
+
+pub(crate) type State = RwLock<Cache<Key, String>>;
 
 #[derive(Deserialize, Debug)]
 pub(crate) struct FilePath {

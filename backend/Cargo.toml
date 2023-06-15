@@ -2,22 +2,20 @@
 name = "yagcdn"
 version = "0.1.0"
 authors = ["Valentin Brandl <vbrandl@riseup.net>"]
-edition = "2018"
+edition = "2021"
 
 
 [dependencies]
-actix-files = "0.1.7"
-actix-web = "1.0.9"
-awc = { version = "0.2.8", features = ["default", "rust-tls"] }
-bytes = "0.4.12"
-futures = "0.1.29"
+actix-files = "0.6.2"
+actix-web = "4.3.1"
+async-trait = "0.1.68"
+awc = { version = "3.1.1", features = ["default", "rustls"] }
 lazy_static = "1.4.0"
-log = "0.4.8"
-mime_guess = "2.0.3"
-openssl-probe = "0.1.2"
-pretty_env_logger = "0.4.0"
-serde = { version = "1.0.106", features = ["rc"] }
-serde_derive = "1.0.104"
-serde_json = "1.0.50"
-structopt = "0.3.12"
+mime_guess = "2.0.4"
+serde = { version = "1.0.164", features = ["rc", "derive"] }
+structopt = "0.3.26"
+thiserror = "1.0.40"
 time-cache = { path = "../time-cache" }
+tokio = { version = "1.28.2", features = ["sync"] }
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }

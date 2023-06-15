@@ -1,10 +1,13 @@
 use crate::{
+    error::Result,
     service::Service,
     statics::{self, CF_ZONE_IDENT},
 };
-use actix_web::{http::header, Error, HttpResponse};
+
+use actix_web::{http::header, HttpResponse};
 use awc::Client;
-use futures::Future;
+use serde::Serialize;
+use tracing::trace;
 
 pub(crate) struct Cloudflare;
 
@@ -13,41 +16,24 @@ impl Cloudflare {
         &CF_ZONE_IDENT
     }
 
-    pub(crate) fn purge_cache<T: Service>(
+    pub(crate) async fn purge_cache<T: Service>(
         client: &Client,
         file: &str,
-    ) -> impl Future<Item = HttpResponse, Error = Error> {
+    ) -> Result<HttpResponse> {
         let payload = CfPurgeRequest::singleton::<T>(file);
-        println!("{:#?}", payload);
-        client
+        trace!("{payload:#?}");
+        let response = client
             .post(format!(
                 "https://api.cloudflare.com/client/v4/zones/{}/purge_cache",
                 Self::identifier()
             ))
-            .header(header::USER_AGENT, &*statics::USER_AGENT.as_str())
-            .header("X-Auth-Email", Self::auth_email())
-            .header("X-Auth-Key", Self::auth_key())
+            .insert_header((header::USER_AGENT, statics::USER_AGENT.as_str()))
+            .insert_header(("X-Auth-Email", Self::auth_email()))
+            .insert_header(("X-Auth-Key", Self::auth_key()))
             .content_type("application/json")
             .send_json(&payload)
-            .from_err()
-            .and_then(|response| HttpResponse::build(response.status()).streaming(response))
-        // client
-        //     .post(format!(
-        //         "https://api.cloudflare.com/client/v4/zones/{}/purge_cache",
-        //         Self::identifier()
-        //     ))
-        //     .header(header::USER_AGENT, statics::USER_AGENT.as_ref())
-        //     .header("X-Auth-Email", Self::auth_email())
-        //     .header("X-Auth-Key", Self::auth_key())
-        //     .content_type("application/json")
-        //     .send_json(&CfPurgeRequest::singleton::<T>(file))
-        //     .from_err()
-        //     .and_then(|mut response| {
-        //         response
-        //             .json::<CfPurgeResponse>()
-        //             .map(|resp| resp.success)
-        //             .from_err()
-        //     })
+            .await?;
+        Ok(HttpResponse::build(response.status()).streaming(response))
     }
 
     fn auth_key() -> &'static str {
@@ -76,8 +62,3 @@ impl CfPurgeRequest {
         }
     }
 }
-
-// #[derive(Deserialize)]
-// struct CfPurgeResponse {
-//     success: bool,
-// }

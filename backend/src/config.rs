@@ -1,3 +1,5 @@
+use structopt::StructOpt;
+
 use std::net::IpAddr;
 
 #[derive(StructOpt)]
