@@ -61,7 +61,6 @@ async fn redirect<T: Service>(
         match cache.get(&key) {
             CacheResult::Cached(head) => {
                 info!("Loading HEAD from cache for {}/{}", T::path(), data.path());
-                let head = head.clone();
                 return Ok(HttpResponse::SeeOther()
                     .insert_header((
                         LOCATION,

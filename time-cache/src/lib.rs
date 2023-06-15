@@ -1,5 +1,5 @@
 //! Simple cache structure that stores values for a specified time. The cache itself is backed by
-//! a HashMap.
+//! a `HashMap`.
 
 use std::{
     collections::HashMap,
@@ -27,6 +27,7 @@ where
     /// let cache: Cache<u8, u8> = Cache::new(Duration::from_secs(0));
     /// assert_eq!(CacheResult::Empty, cache.get(&0));
     /// ```
+    #[must_use]
     pub fn new(duration: Duration) -> Self {
         Self {
             cache: HashMap::new(),
@@ -122,7 +123,7 @@ where
     /// ```
     pub fn clear(&mut self) {
         let now = Instant::now();
-        self.cache.retain(|_, v| Self::is_valid(now, v))
+        self.cache.retain(|_, v| Self::is_valid(now, v));
     }
 
     fn is_valid(when: Instant, entry: &CacheEntry<V>) -> bool {

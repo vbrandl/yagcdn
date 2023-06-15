@@ -68,7 +68,7 @@ impl ApiResponse for GitLabApiResponse {
 
 #[async_trait::async_trait(?Send)]
 pub(crate) trait Service: Sized {
-    type Response: for<'de> serde::Deserialize<'de> + ApiResponse + 'static;
+    type Response: for<'de> serde::Deserialize<'de> + ApiResponse;
 
     fn raw_url(user: &str, repo: &str, commit: &str, file: &str) -> String;
 
