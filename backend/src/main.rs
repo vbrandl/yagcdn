@@ -21,9 +21,11 @@ use actix_web::{
 use awc::{http::StatusCode, Client};
 use time_cache::{Cache, CacheResult};
 use tokio::sync::RwLock;
-use tracing::info;
+use tracing::{info, instrument};
+use tracing_actix_web::TracingLogger;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+#[instrument(skip(data), fields(user = %data.user, repo = %data.repo, commit = %data.commit, file = %data.file))]
 async fn proxy_file<T: Service>(data: web::Path<FilePath>) -> Result<HttpResponse> {
     let client = Client::default();
     let response = client
@@ -51,6 +53,7 @@ async fn proxy_file<T: Service>(data: web::Path<FilePath>) -> Result<HttpRespons
     }
 }
 
+#[instrument(skip(cache, data), fields(user = %data.user, repo = %data.repo, commit = %data.commit, file = %data.file))]
 async fn redirect<T: Service>(
     cache: web::Data<State>,
     data: web::Path<FilePath>,
@@ -84,6 +87,7 @@ async fn redirect<T: Service>(
     T::request_head(data, cache).await
 }
 
+#[instrument(skip(data), fields(user = %data.user, repo = %data.repo, commit = %data.commit, file = %data.file))]
 async fn serve_gist(data: web::Path<FilePath>) -> Result<HttpResponse> {
     let client = Client::default();
     let url = format!(
@@ -112,6 +116,7 @@ async fn serve_gist(data: web::Path<FilePath>) -> Result<HttpResponse> {
 
 #[get("/favicon.ico")]
 #[allow(clippy::unused_async)]
+#[instrument]
 async fn favicon32() -> HttpResponse {
     HttpResponse::Ok()
         .content_type("image/png")
@@ -123,6 +128,7 @@ async fn favicon32() -> HttpResponse {
 }
 
 #[allow(clippy::unused_async)]
+#[instrument(skip(cache, data), fields(user = %data.user, repo = %data.repo, commit = %data.commit, file = %data.file))]
 async fn purge_local_cache<T: 'static + Service>(
     cache: web::Data<State>,
     data: web::Path<FilePath>,
@@ -134,6 +140,7 @@ async fn purge_local_cache<T: 'static + Service>(
     HttpResponse::Ok().finish()
 }
 
+#[instrument(skip(data), fields(user = %data.user, repo = %data.repo, commit = %data.commit, file = %data.file))]
 async fn purge_cf_cache<T: 'static + Service>(data: web::Path<FilePath>) -> Result<HttpResponse> {
     let client = Client::default();
     Cloudflare::purge_cache::<T>(&client, &data.path()).await
@@ -143,7 +150,7 @@ fn init_logging() {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
             std::env::var("RUST_LOG")
-                .unwrap_or_else(|_| "yagcdn=debug,actix_server=info,actix_web=trace".into()),
+                .unwrap_or_else(|_| "yagcdn=debug,actix_web=trace".into()),
         ))
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -157,7 +164,7 @@ async fn main() -> Result<()> {
     Ok(HttpServer::new(move || {
         App::new()
             .app_data(state.clone())
-            .wrap(middleware::Logger::default())
+            .wrap(TracingLogger::default())
             .wrap(middleware::NormalizePath::trim())
             .service(favicon32)
             .route(
