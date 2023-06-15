@@ -61,11 +61,10 @@ async fn redirect<T: Service>(
         match cache.get(&key) {
             CacheResult::Cached(head) => {
                 info!("Loading HEAD from cache for {}/{}", T::path(), data.path());
-                let head = head.clone();
                 return Ok(HttpResponse::SeeOther()
                     .insert_header((
                         LOCATION,
-                        T::redirect_url(&data.user, &data.repo, &head, &data.file).as_str(),
+                        T::redirect_url(&data.user, &data.repo, head, &data.file).as_str(),
                     ))
                     .insert_header(CacheControl(vec![
                         CacheDirective::Public,
