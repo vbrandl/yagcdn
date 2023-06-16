@@ -41,10 +41,11 @@ async fn proxy_file<T: Service>(data: web::Path<FilePath>) -> Result<impl Respon
         .await?;
     match response.status() {
         StatusCode::OK => {
+            // mime type is guessed from the file extension
             let mime = mime_guess::from_path(&*data.file).first_or_octet_stream();
             info!(mime = %mime, "proxying file");
             Ok(HttpResponse::Ok()
-                .content_type(mime.to_string().as_str())
+                .content_type(mime.as_ref())
                 .insert_header(CacheControl(vec![
                     CacheDirective::Public,
                     CacheDirective::MaxAge(2_592_000_000),
@@ -108,9 +109,10 @@ async fn serve_gist(data: web::Path<FilePath>) -> Result<HttpResponse> {
         .await?;
     match response.status() {
         StatusCode::OK => {
+            // mime type is guessed from the file extension
             let mime = mime_guess::from_path(&*data.file).first_or_octet_stream();
             Ok(HttpResponse::Ok()
-                .content_type(mime.to_string().as_str())
+                .content_type(mime.as_ref())
                 .insert_header(CacheControl(vec![
                     CacheDirective::Public,
                     CacheDirective::MaxAge(2_592_000_000),
@@ -174,9 +176,9 @@ async fn main() -> Result<()> {
             // set the request id in the `x-request-id` response header
             .wrap_fn(|req, srv| {
                 let request_id = req.extensions().get::<RequestId>().copied();
-                let fut = srv.call(req);
+                let res = srv.call(req);
                 async move {
-                    let mut res = fut.await?;
+                    let mut res = res.await?;
                     if let Some(request_id) = request_id {
                         res.headers_mut().insert(
                             HeaderName::from_static("x-request-id"),
