@@ -1,4 +1,4 @@
-name: Rust
+name: Rust time-cache
 
 on:
   workflow_call:
@@ -12,7 +12,7 @@ on:
 
 defaults:
   run:
-    working-directory: backend
+    working-directory: time-cache
 
 
 jobs:
