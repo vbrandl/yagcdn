@@ -129,7 +129,7 @@ async fn favicon32() -> HttpResponse {
 
 #[allow(clippy::unused_async)]
 #[instrument(skip(cache, data), fields(user = %data.user, repo = %data.repo, commit = %data.commit, file = %data.file))]
-async fn purge_local_cache<T: 'static + Service>(
+async fn purge_local_cache<T: Service>(
     cache: web::Data<State>,
     data: web::Path<FilePath>,
 ) -> HttpResponse {
@@ -141,7 +141,7 @@ async fn purge_local_cache<T: 'static + Service>(
 }
 
 #[instrument(skip(data), fields(user = %data.user, repo = %data.repo, commit = %data.commit, file = %data.file))]
-async fn purge_cf_cache<T: 'static + Service>(data: web::Path<FilePath>) -> Result<HttpResponse> {
+async fn purge_cf_cache<T: Service>(data: web::Path<FilePath>) -> Result<HttpResponse> {
     let client = Client::default();
     Cloudflare::purge_cache::<T>(&client, &data.path()).await
 }
