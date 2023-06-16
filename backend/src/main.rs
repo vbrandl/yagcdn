@@ -150,7 +150,7 @@ fn init_logging() {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
             std::env::var("RUST_LOG")
-                .unwrap_or_else(|_| "yagcdn=debug,actix_web=trace".into()),
+                .unwrap_or_else(|_| "yagcdn=debug,actix_web=trace,tracing_actix_web=debug".into()),
         ))
         .with(tracing_subscriber::fmt::layer())
         .init();
