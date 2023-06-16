@@ -13,6 +13,7 @@ use actix_web::{
 };
 use awc::Client;
 use serde::Deserialize;
+use tracing::error;
 
 use std::borrow::Cow;
 
@@ -87,8 +88,8 @@ pub(crate) trait Service: Sized {
     async fn request_head(
         data: web::Path<FilePath>,
         cache: web::Data<State>,
+        client: &Client,
     ) -> Result<HttpResponse> {
-        let client = Client::default();
         let req = client
             .get(&Self::api_url(&data))
             .insert_header((header::USER_AGENT, statics::USER_AGENT.as_str()));
@@ -117,7 +118,10 @@ pub(crate) trait Service: Sized {
                     ]))
                     .finish()
             }
-            code => HttpResponse::build(code).finish(),
+            code => {
+                error!(code = %code, "request failed");
+                HttpResponse::build(code).finish()
+            }
         })
     }
 }
@@ -181,8 +185,8 @@ impl Service for Github {
     async fn request_head(
         data: web::Path<FilePath>,
         cache: web::Data<State>,
+        client: &Client,
     ) -> Result<HttpResponse> {
-        let client = Client::default();
         let req = client
             .get(&Self::api_url(&data))
             .insert_header((header::USER_AGENT, statics::USER_AGENT.as_str()));
@@ -211,7 +215,10 @@ impl Service for Github {
                     ]))
                     .finish()
             }
-            code => HttpResponse::build(code).finish(),
+            code => {
+                error!(code = %code, "request failed");
+                HttpResponse::build(code).finish()
+            }
         })
     }
 }
@@ -276,8 +283,8 @@ impl Service for GitLab {
     async fn request_head(
         data: web::Path<FilePath>,
         cache: web::Data<State>,
+        client: &Client,
     ) -> Result<HttpResponse> {
-        let client = Client::default();
         let req = client
             .get(&Self::api_url(&data))
             .insert_header((header::USER_AGENT, statics::USER_AGENT.as_str()));
@@ -321,10 +328,16 @@ impl Service for GitLab {
                             ]))
                             .finish()
                     }
-                    code => HttpResponse::build(code).finish(),
+                    code => {
+                        error!(code = %code, "request failed");
+                        HttpResponse::build(code).finish()
+                    }
                 }
             }
-            code => HttpResponse::build(code).finish(),
+            code => {
+                error!(code = %code, "request failed");
+                HttpResponse::build(code).finish()
+            }
         })
     }
 }

@@ -14,17 +14,20 @@ use crate::{
 };
 
 use actix_web::{
+    dev::Service as _,
     get,
-    http::header::{self, CacheControl, CacheDirective, LOCATION},
-    middleware, web, App, HttpResponse, HttpServer,
+    http::header::{self, CacheControl, CacheDirective, HeaderName, HeaderValue, LOCATION},
+    middleware, web, App, HttpMessage, HttpResponse, HttpServer, Responder,
 };
 use awc::{http::StatusCode, Client};
 use time_cache::{Cache, CacheResult};
 use tokio::sync::RwLock;
-use tracing::info;
+use tracing::{debug, error, info, instrument};
+use tracing_actix_web::{RequestId, TracingLogger};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-async fn proxy_file<T: Service>(data: web::Path<FilePath>) -> Result<HttpResponse> {
+#[instrument(skip(data), fields(path = data.path(), service = T::path()))]
+async fn proxy_file<T: Service>(data: web::Path<FilePath>) -> Result<impl Responder> {
     let client = Client::default();
     let response = client
         .get(&T::raw_url(
@@ -39,6 +42,7 @@ async fn proxy_file<T: Service>(data: web::Path<FilePath>) -> Result<HttpRespons
     match response.status() {
         StatusCode::OK => {
             let mime = mime_guess::from_path(&*data.file).first_or_octet_stream();
+            info!(mime = %mime, "proxying file");
             Ok(HttpResponse::Ok()
                 .content_type(mime.to_string().as_str())
                 .insert_header(CacheControl(vec![
@@ -47,20 +51,24 @@ async fn proxy_file<T: Service>(data: web::Path<FilePath>) -> Result<HttpRespons
                 ]))
                 .streaming(response))
         }
-        code => Ok(HttpResponse::build(code).finish()),
+        code => {
+            error!(code = %code, "error from remote");
+            Ok(HttpResponse::build(code).finish())
+        }
     }
 }
 
+#[instrument(skip(cache, data), fields(path = data.path(), service = T::path()))]
 async fn redirect<T: Service>(
     cache: web::Data<State>,
     data: web::Path<FilePath>,
-) -> Result<HttpResponse> {
+) -> Result<impl Responder> {
     let invalid = {
         let cache = cache.read().await;
         let key = data.to_key::<T>();
         match cache.get(&key) {
             CacheResult::Cached(head) => {
-                info!("Loading HEAD from cache for {}/{}", T::path(), data.path());
+                debug!("Loading HEAD from cache");
                 return Ok(HttpResponse::SeeOther()
                     .insert_header((
                         LOCATION,
@@ -78,12 +86,15 @@ async fn redirect<T: Service>(
     };
     if invalid {
         let mut cache = cache.write().await;
-        info!("Clearing cache. Removing invalid elements");
+        debug!("Clearing cache. Removing invalid elements");
         cache.clear();
     }
-    T::request_head(data, cache).await
+    info!("Redirecting");
+    let client = Client::default();
+    T::request_head(data, cache, &client).await
 }
 
+#[instrument(skip(data), fields(path = data.path(), service = "gist"))]
 async fn serve_gist(data: web::Path<FilePath>) -> Result<HttpResponse> {
     let client = Client::default();
     let url = format!(
@@ -112,6 +123,7 @@ async fn serve_gist(data: web::Path<FilePath>) -> Result<HttpResponse> {
 
 #[get("/favicon.ico")]
 #[allow(clippy::unused_async)]
+#[instrument]
 async fn favicon32() -> HttpResponse {
     HttpResponse::Ok()
         .content_type("image/png")
@@ -123,18 +135,21 @@ async fn favicon32() -> HttpResponse {
 }
 
 #[allow(clippy::unused_async)]
-async fn purge_local_cache<T: 'static + Service>(
+#[instrument(skip(cache, data), fields(path = data.path(), service = T::path()))]
+async fn purge_local_cache<T: Service>(
     cache: web::Data<State>,
     data: web::Path<FilePath>,
 ) -> HttpResponse {
     let mut cache = cache.write().await;
-    info!("Invalidating local cache for {}/{}", T::path(), data.path());
+    info!("Invalidating local cache");
     let key = data.to_key::<T>();
     cache.invalidate(&key);
     HttpResponse::Ok().finish()
 }
 
-async fn purge_cf_cache<T: 'static + Service>(data: web::Path<FilePath>) -> Result<HttpResponse> {
+#[instrument(skip(data), fields(path = data.path(), service = T::path()))]
+async fn purge_cf_cache<T: Service>(data: web::Path<FilePath>) -> Result<HttpResponse> {
+    info!("purging cache");
     let client = Client::default();
     Cloudflare::purge_cache::<T>(&client, &data.path()).await
 }
@@ -143,7 +158,7 @@ fn init_logging() {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
             std::env::var("RUST_LOG")
-                .unwrap_or_else(|_| "yagcdn=debug,actix_server=info,actix_web=trace".into()),
+                .unwrap_or_else(|_| "yagcdn=debug,actix_web=trace,tracing_actix_web=debug".into()),
         ))
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -156,8 +171,24 @@ async fn main() -> Result<()> {
     let state = web::Data::new(RwLock::new(Cache::<data::Key, String>::new(REDIRECT_AGE)));
     Ok(HttpServer::new(move || {
         App::new()
+            // set the request id in the `x-request-id` response header
+            .wrap_fn(|req, srv| {
+                let request_id = req.extensions().get::<RequestId>().copied();
+                let fut = srv.call(req);
+                async move {
+                    let mut res = fut.await?;
+                    if let Some(request_id) = request_id {
+                        res.headers_mut().insert(
+                            HeaderName::from_static("x-request-id"),
+                            // this unwrap never fails, since UUIDs are valid ASCII strings
+                            HeaderValue::from_str(&request_id.to_string()).unwrap(),
+                        );
+                    }
+                    Ok(res)
+                }
+            })
             .app_data(state.clone())
-            .wrap(middleware::Logger::default())
+            .wrap(TracingLogger::default())
             .wrap(middleware::NormalizePath::trim())
             .service(favicon32)
             .route(
