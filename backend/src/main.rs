@@ -30,7 +30,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 async fn proxy_file<T: Service>(
     client: web::Data<Client>,
     data: web::Path<FilePath>,
-    ) -> Result<impl Responder> {
+) -> Result<impl Responder> {
     let response = client
         .get(&T::raw_url(
             &data.user,
@@ -151,7 +151,10 @@ async fn purge_local_cache<T: Service>(
 }
 
 #[instrument(skip(data, client), fields(path = data.path(), service = T::path()))]
-async fn purge_cf_cache<T: Service>(client: web::Data<Client>, data: web::Path<FilePath>) -> Result<HttpResponse> {
+async fn purge_cf_cache<T: Service>(
+    client: web::Data<Client>,
+    data: web::Path<FilePath>,
+) -> Result<HttpResponse> {
     info!("purging cache");
     Cloudflare::purge_cache::<T>(&client, &data.path()).await
 }
