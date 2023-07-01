@@ -16,7 +16,7 @@ serde = { version = "1.0.164", features = ["rc", "derive"] }
 structopt = "0.3.26"
 thiserror = "1.0.40"
 time-cache = { path = "../time-cache" }
-tokio = { version = "1.28.2", features = ["sync"] }
+tokio = { version = "1.29.1", features = ["sync"] }
 tracing = "0.1.37"
 tracing-actix-web = "0.7.5"
 tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
