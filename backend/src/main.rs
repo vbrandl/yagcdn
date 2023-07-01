@@ -26,9 +26,11 @@ use tracing::{debug, error, info, instrument};
 use tracing_actix_web::{RequestId, TracingLogger};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-#[instrument(skip(data), fields(path = data.path(), service = T::path()))]
-async fn proxy_file<T: Service>(data: web::Path<FilePath>) -> Result<impl Responder> {
-    let client = Client::default();
+#[instrument(skip(data, client), fields(path = data.path(), service = T::path()))]
+async fn proxy_file<T: Service>(
+    client: web::Data<Client>,
+    data: web::Path<FilePath>,
+) -> Result<impl Responder> {
     let response = client
         .get(&T::raw_url(
             &data.user,
@@ -59,9 +61,10 @@ async fn proxy_file<T: Service>(data: web::Path<FilePath>) -> Result<impl Respon
     }
 }
 
-#[instrument(skip(cache, data), fields(path = data.path(), service = T::path()))]
+#[instrument(skip(cache, data, client), fields(path = data.path(), service = T::path()))]
 async fn redirect<T: Service>(
     cache: web::Data<State>,
+    client: web::Data<Client>,
     data: web::Path<FilePath>,
 ) -> Result<impl Responder> {
     let invalid = {
@@ -91,13 +94,11 @@ async fn redirect<T: Service>(
         cache.clear();
     }
     info!("Redirecting");
-    let client = Client::default();
     T::request_head(data, cache, &client).await
 }
 
-#[instrument(skip(data), fields(path = data.path(), service = "gist"))]
-async fn serve_gist(data: web::Path<FilePath>) -> Result<HttpResponse> {
-    let client = Client::default();
+#[instrument(skip(data, client), fields(path = data.path(), service = "gist"))]
+async fn serve_gist(client: web::Data<Client>, data: web::Path<FilePath>) -> Result<HttpResponse> {
     let url = format!(
         "https://gist.github.com/{}/{}/raw/{}/{}",
         data.user, data.repo, data.commit, data.file
@@ -149,10 +150,12 @@ async fn purge_local_cache<T: Service>(
     HttpResponse::Ok().finish()
 }
 
-#[instrument(skip(data), fields(path = data.path(), service = T::path()))]
-async fn purge_cf_cache<T: Service>(data: web::Path<FilePath>) -> Result<HttpResponse> {
+#[instrument(skip(data, client), fields(path = data.path(), service = T::path()))]
+async fn purge_cf_cache<T: Service>(
+    client: web::Data<Client>,
+    data: web::Path<FilePath>,
+) -> Result<HttpResponse> {
     info!("purging cache");
-    let client = Client::default();
     Cloudflare::purge_cache::<T>(&client, &data.path()).await
 }
 
@@ -190,6 +193,7 @@ async fn main() -> Result<()> {
                 }
             })
             .app_data(state.clone())
+            .app_data(web::Data::new(Client::default()))
             .wrap(TracingLogger::default())
             .wrap(middleware::NormalizePath::trim())
             .service(favicon32)
