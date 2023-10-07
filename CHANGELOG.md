@@ -5,4 +5,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Dependencies
-- Bump `actions/checkout` from 1 to 3 (#88)
+- Bump `actions/checkout` from 1 to 4 (#88, [#92](https://github.com/vbrandl/yagcdn/pull/92))
