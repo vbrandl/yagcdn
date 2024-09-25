@@ -6,17 +6,17 @@ edition = "2021"
 
 
 [dependencies]
-actix-files = "0.6.2"
-actix-web = "4.3.1"
-async-trait = "0.1.68"
-awc = { version = "3.1.1", features = ["default", "rustls"] }
-lazy_static = "1.4.0"
-mime_guess = "2.0.4"
-serde = { version = "1.0.164", features = ["rc", "derive"] }
-structopt = "0.3.26"
-thiserror = "1.0.40"
+actix-files = "0.6.6"
+actix-web = "4.9.0"
+async-trait = "0.1.83"
+awc = { version = "3.5.1", features = ["default", "rustls"] }
+clap = { version = "4.5.18", features = ["derive"] }
+lazy_static = "1.5.0"
+mime_guess = "2.0.5"
+serde = { version = "1.0.210", features = ["rc", "derive"] }
+thiserror = "1.0.64"
 time-cache = { path = "../time-cache" }
-tokio = { version = "1.29.1", features = ["sync"] }
-tracing = "0.1.37"
-tracing-actix-web = "0.7.5"
-tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
+tokio = { version = "1.40.0", features = ["sync"] }
+tracing = "0.1.40"
+tracing-actix-web = "0.7.12"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
