@@ -1,7 +1,7 @@
 use crate::{config::Opt, service::Github};
 
 use lazy_static::lazy_static;
-use structopt::StructOpt;
+use clap::Parser;
 
 use std::{borrow::Cow, env, time::Duration};
 
@@ -12,7 +12,7 @@ lazy_static! {
     pub(crate) static ref REDIRECT_AGE_SECS: u32 =
         u32::try_from(REDIRECT_AGE.as_secs()).expect("redirect age to high");
     pub(crate) static ref USER_AGENT: String = format!("yagcdn/{}", VERSION);
-    pub(crate) static ref OPT: Opt = Opt::from_args();
+    pub(crate) static ref OPT: Opt = Opt::parse();
     pub(crate) static ref GITHUB_AUTH_QUERY: Cow<'static, str> =
         Github::auth_query().unwrap_or_default();
     pub(crate) static ref CF_ZONE_IDENT: Cow<'static, str> = OPT
