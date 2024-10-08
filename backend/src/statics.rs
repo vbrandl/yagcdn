@@ -1,7 +1,7 @@
 use crate::{config::Opt, service::Github};
 
-use lazy_static::lazy_static;
 use clap::Parser;
+use lazy_static::lazy_static;
 
 use std::{borrow::Cow, env, time::Duration};
 
