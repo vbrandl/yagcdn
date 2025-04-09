@@ -16,7 +16,7 @@ mime_guess = "2.0.5"
 serde = { version = "1.0.210", features = ["rc", "derive"] }
 thiserror = "1.0.64"
 time-cache = { path = "../time-cache" }
-tokio = { version = "1.40.0", features = ["sync"] }
+tokio = { version = "1.43.1", features = ["sync"] }
 tracing = "0.1.40"
 tracing-actix-web = "0.7.12"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
