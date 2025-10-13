@@ -5,7 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Dependencies
-- Bump `actions/checkout` from 1 to 4 (#88, [#92](https://github.com/vbrandl/yagcdn/pull/92))
+- Bump `actions/checkout` from 1 to 5 (#88, [#92](https://github.com/vbrandl/yagcdn/pull/92), [#110](https://github.com/vbrandl/yagcdn/pull/110))
 - Bump `stefanzweifel/git-auto-commit-action` from 4 to 7 ([#94](https://github.com/vbrandl/yagcdn/pull/94), [#109](https://github.com/vbrandl/yagcdn/pull/109), [#111](https://github.com/vbrandl/yagcdn/pull/111))
 - Bump `actions/cache` from 3 to 4 ([#95](https://github.com/vbrandl/yagcdn/pull/95))
 - Bump `dangoslen/dependabot-changelog-helper` from 3 to 4 ([#102](https://github.com/vbrandl/yagcdn/pull/102))
