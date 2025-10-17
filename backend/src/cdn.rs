@@ -54,10 +54,9 @@ impl CfPurgeRequest {
     fn singleton<T: Service>(file: &str) -> Self {
         Self {
             files: vec![format!(
-                "https://{}/{}/{}",
-                statics::HOSTNAME.as_ref(),
+                "https://{}/{}/{file}",
+                statics::HOSTNAME,
                 T::path(),
-                file
             )],
         }
     }

@@ -129,20 +129,16 @@ pub(crate) trait Service: Sized {
 pub(crate) struct Github;
 
 impl Github {
-    pub(crate) fn auth_query() -> Option<Cow<'static, str>> {
+    pub(crate) fn auth_query() -> Option<String> {
         match (
             OPT.github_id
-                .as_ref()
-                .map(Cow::from)
+                .clone()
                 .or_else(|| load_env_var("GITHUB_CLIENT_ID")),
             OPT.github_secret
-                .as_ref()
-                .map(Cow::from)
+                .clone()
                 .or_else(|| load_env_var("GITHUB_CLIENT_SECRET")),
         ) {
-            (Some(id), Some(secret)) => {
-                Some(format!("?client_id={id}&client_secret={secret}").into())
-            }
+            (Some(id), Some(secret)) => Some(format!("?client_id={id}&client_secret={secret}")),
             _ => None,
         }
     }
@@ -171,10 +167,7 @@ impl Service for Github {
     fn api_url(path: &FilePath) -> String {
         format!(
             "https://api.github.com/repos/{}/{}/commits/{}{}",
-            path.user,
-            path.repo,
-            path.commit,
-            GITHUB_AUTH_QUERY.as_ref()
+            path.user, path.repo, path.commit, GITHUB_AUTH_QUERY
         )
     }
 
