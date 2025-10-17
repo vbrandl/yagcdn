@@ -12,8 +12,8 @@ use tracing::trace;
 pub(crate) struct Cloudflare;
 
 impl Cloudflare {
-    fn identifier() -> &'static str {
-        &*CF_ZONE_IDENT
+    fn identifier() -> String {
+        CF_ZONE_IDENT.clone()
     }
 
     pub(crate) async fn purge_cache<T: Service>(
@@ -36,12 +36,12 @@ impl Cloudflare {
         Ok(HttpResponse::build(response.status()).streaming(response))
     }
 
-    fn auth_key() -> &'static str {
-        &*statics::CF_AUTH_KEY
+    fn auth_key() -> String {
+        statics::CF_AUTH_KEY.clone()
     }
 
-    fn auth_email() -> &'static str {
-        &*statics::CF_AUTH_USER
+    fn auth_email() -> String {
+        statics::CF_AUTH_USER.clone()
     }
 }
 
