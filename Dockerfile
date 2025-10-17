@@ -1,9 +1,9 @@
-FROM node:alpine as frontend
+FROM node:alpine AS frontend
+
+WORKDIR /
 
 # install envsubst
-RUN apk add -U --upgrade --no-cache gettext
-
-RUN yarn global add elm uglify-js
+RUN apk add -U --upgrade --no-cache gettext && yarn global add elm uglify-js
 
 COPY ./frontend/build.sh ./build.sh
 COPY ./frontend/assets ./assets
@@ -15,11 +15,12 @@ COPY ./frontend/src ./src
 RUN ./build.sh
 
 # FROM ekidd/rust-musl-builder:stable as backend
-FROM clux/muslrust:stable as backend
+FROM clux/muslrust:stable AS backend
+
+WORKDIR /volume/
 
 # create new cargo project
-RUN cargo new --bin yagcdn
-RUN cargo new --lib time-cache
+RUN cargo new --bin yagcdn && cargo new --lib time-cache
 # copy build config
 COPY ./backend/Cargo.lock ./yagcdn/Cargo.lock
 COPY ./backend/Cargo.toml ./yagcdn/Cargo.toml
@@ -29,8 +30,7 @@ WORKDIR /volume/yagcdn
 # build to cache dependencies
 RUN cargo build --release
 # delete build cache to prevent caching issues later on
-RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/yagcdn*
-RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/time-cache-*
+RUN rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/yagcdn* && rm -r ./target/x86_64-unknown-linux-musl/release/.fingerprint/time-cache-*
 
 COPY ./backend/static ./static
 COPY ./backend/src ./src
@@ -40,7 +40,7 @@ RUN cargo build --release
 
 
 # create /etc/password for rootless scratch container
-FROM alpine:latest as user_builder
+FROM alpine:latest AS user_builder
 RUN USER=root adduser -D -u 10001 dummy
 
 FROM scratch
