@@ -2075,7 +2075,6 @@ dependencies = [
  "async-trait",
  "awc",
  "clap",
- "lazy_static",
  "mime_guess",
  "serde",
  "thiserror",
