@@ -171,10 +171,7 @@ impl Service for Github {
     fn api_url(path: &FilePath) -> String {
         format!(
             "https://api.github.com/repos/{}/{}/commits/{}{}",
-            path.user,
-            path.repo,
-            path.commit,
-            GITHUB_AUTH_QUERY.as_ref()
+            path.user, path.repo, path.commit, &*GITHUB_AUTH_QUERY
         )
     }
 

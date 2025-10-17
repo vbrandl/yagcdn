@@ -1,45 +1,46 @@
 use crate::{config::Opt, service::Github};
 
 use clap::Parser;
-use lazy_static::lazy_static;
 
-use std::{borrow::Cow, env, time::Duration};
+use std::{borrow::Cow, env, sync::LazyLock, time::Duration};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub(crate) const REDIRECT_AGE: Duration = Duration::from_secs(5 * 60);
 pub(crate) const FAVICON: &[u8] = include_bytes!("../static/favicon32.png");
-lazy_static! {
-    pub(crate) static ref REDIRECT_AGE_SECS: u32 =
-        u32::try_from(REDIRECT_AGE.as_secs()).expect("redirect age to high");
-    pub(crate) static ref USER_AGENT: String = format!("yagcdn/{}", VERSION);
-    pub(crate) static ref OPT: Opt = Opt::parse();
-    pub(crate) static ref GITHUB_AUTH_QUERY: Cow<'static, str> =
-        Github::auth_query().unwrap_or_default();
-    pub(crate) static ref CF_ZONE_IDENT: Cow<'static, str> = OPT
-        .cf_zone
+pub(crate) static REDIRECT_AGE_SECS: LazyLock<u32> =
+    LazyLock::new(|| u32::try_from(REDIRECT_AGE.as_secs()).expect("redirect age to high"));
+pub(crate) static USER_AGENT: LazyLock<String> = LazyLock::new(|| format!("yagcdn/{VERSION}"));
+pub(crate) static OPT: LazyLock<Opt> = LazyLock::new(Opt::parse);
+pub(crate) static GITHUB_AUTH_QUERY: LazyLock<Cow<'static, str>> =
+    LazyLock::new(|| Github::auth_query().unwrap_or_default());
+pub(crate) static CF_ZONE_IDENT: LazyLock<Cow<'static, str>> = LazyLock::new(|| {
+    OPT.cf_zone
         .as_ref()
         .map(Cow::from)
         .or_else(|| load_env_var("CF_ZONE_IDENT"))
-        .expect("Cloudflare zone identifier not set");
-    pub(crate) static ref CF_AUTH_KEY: Cow<'static, str> = OPT
-        .cf_auth_key
+        .expect("Cloudflare zone identifier not set")
+});
+pub(crate) static CF_AUTH_KEY: LazyLock<Cow<'static, str>> = LazyLock::new(|| {
+    OPT.cf_auth_key
         .as_ref()
         .map(Cow::from)
         .or_else(|| load_env_var("CF_AUTH_KEY"))
-        .expect("Cloudflare auth key not set");
-    pub(crate) static ref CF_AUTH_USER: Cow<'static, str> = OPT
-        .cf_auth_user
+        .expect("Cloudflare auth key not set")
+});
+pub(crate) static CF_AUTH_USER: LazyLock<Cow<'static, str>> = LazyLock::new(|| {
+    OPT.cf_auth_user
         .as_ref()
         .map(Cow::from)
         .or_else(|| load_env_var("CF_AUTH_USER"))
-        .expect("Cloudflare auth user not set");
-    pub(crate) static ref HOSTNAME: Cow<'static, str> = OPT
-        .hostname
+        .expect("Cloudflare auth user not set")
+});
+pub(crate) static HOSTNAME: LazyLock<Cow<'static, str>> = LazyLock::new(|| {
+    OPT.hostname
         .as_ref()
         .map(Cow::from)
         .or_else(|| load_env_var("YAGCDN_HOSTNAME"))
-        .unwrap_or_else(|| "yagcdn.tk".into());
-}
+        .unwrap_or_else(|| "yagcdn.tk".into())
+});
 
 pub(crate) fn load_env_var(key: &str) -> Option<Cow<'static, str>> {
     env::var(key).ok().and_then(|val| {
