@@ -15,6 +15,8 @@ use awc::Client;
 use serde::Deserialize;
 use tracing::error;
 
+use std::borrow::Cow;
+
 pub(crate) trait ApiResponse {
     fn commit_ref(&self) -> &str;
 }
@@ -127,16 +129,20 @@ pub(crate) trait Service: Sized {
 pub(crate) struct Github;
 
 impl Github {
-    pub(crate) fn auth_query() -> Option<String> {
+    pub(crate) fn auth_query() -> Option<Cow<'static, str>> {
         match (
             OPT.github_id
-                .clone()
+                .as_ref()
+                .map(Cow::from)
                 .or_else(|| load_env_var("GITHUB_CLIENT_ID")),
             OPT.github_secret
-                .clone()
+                .as_ref()
+                .map(Cow::from)
                 .or_else(|| load_env_var("GITHUB_CLIENT_SECRET")),
         ) {
-            (Some(id), Some(secret)) => Some(format!("?client_id={id}&client_secret={secret}")),
+            (Some(id), Some(secret)) => {
+                Some(format!("?client_id={id}&client_secret={secret}").into())
+            }
             _ => None,
         }
     }
