@@ -13,7 +13,7 @@ pub(crate) struct Cloudflare;
 
 impl Cloudflare {
     fn identifier() -> &'static str {
-        CF_ZONE_IDENT.as_str()
+        &*CF_ZONE_IDENT
     }
 
     pub(crate) async fn purge_cache<T: Service>(
@@ -37,11 +37,11 @@ impl Cloudflare {
     }
 
     fn auth_key() -> &'static str {
-        statics::CF_AUTH_KEY.as_str()
+        &*statics::CF_AUTH_KEY
     }
 
     fn auth_email() -> &'static str {
-        statics::CF_AUTH_USER.as_str()
+        &*statics::CF_AUTH_USER
     }
 }
 
@@ -55,7 +55,7 @@ impl CfPurgeRequest {
         Self {
             files: vec![format!(
                 "https://{}/{}/{file}",
-                &statics::HOSTNAME,
+                &*statics::HOSTNAME,
                 T::path(),
             )],
         }
