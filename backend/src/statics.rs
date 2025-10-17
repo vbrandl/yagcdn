@@ -15,21 +15,25 @@ pub(crate) const GITHUB_AUTH_QUERY: LazyLock<String> =
     LazyLock::new(|| Github::auth_query().unwrap_or_default());
 pub(crate) const CF_ZONE_IDENT: LazyLock<String> = LazyLock::new(|| {
     OPT.cf_zone
+        .clone()
         .or_else(|| load_env_var("CF_ZONE_IDENT"))
         .expect("Cloudflare zone identifier not set")
 });
 pub(crate) const CF_AUTH_KEY: LazyLock<String> = LazyLock::new(|| {
     OPT.cf_auth_key
+        .clone()
         .or_else(|| load_env_var("CF_AUTH_KEY"))
         .expect("Cloudflare auth key not set")
 });
 pub(crate) const CF_AUTH_USER: LazyLock<String> = LazyLock::new(|| {
     OPT.cf_auth_user
+        .clone()
         .or_else(|| load_env_var("CF_AUTH_USER"))
         .expect("Cloudflare auth user not set")
 });
 pub(crate) const HOSTNAME: LazyLock<String> = LazyLock::new(|| {
     OPT.hostname
+        .clone()
         .or_else(|| load_env_var("YAGCDN_HOSTNAME"))
         .unwrap_or_else(|| "yagcdn.tk".into())
 });
