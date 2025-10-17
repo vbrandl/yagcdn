@@ -9,7 +9,7 @@ edition = "2021"
 actix-files = "0.6.8"
 actix-web = "4.11.0"
 async-trait = "0.1.89"
-awc = { version = "3.8.1", features = ["default", "rustls"] }
+awc = { version = "3.8.1", features = ["default", "rustls-0_23"] }
 clap = { version = "4.5.49", features = ["derive"] }
 mime_guess = "2.0.5"
 serde = { version = "1.0.228", features = ["rc", "derive"] }
