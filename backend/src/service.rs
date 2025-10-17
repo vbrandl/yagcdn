@@ -15,8 +15,6 @@ use awc::Client;
 use serde::Deserialize;
 use tracing::error;
 
-use std::borrow::Cow;
-
 pub(crate) trait ApiResponse {
     fn commit_ref(&self) -> &str;
 }
@@ -167,7 +165,7 @@ impl Service for Github {
     fn api_url(path: &FilePath) -> String {
         format!(
             "https://api.github.com/repos/{}/{}/commits/{}{}",
-            path.user, path.repo, path.commit, GITHUB_AUTH_QUERY
+            path.user, path.repo, path.commit, &GITHUB_AUTH_QUERY
         )
     }
 
