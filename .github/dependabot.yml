@@ -12,10 +12,10 @@ updates:
       - dependencies
       - dependabot
 
-  - package-ecosystem: 'github-actions'
-    directory: '/'
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: 'daily'
+      interval: "daily"
     open-pull-requests-limit: 10
     assignees:
       - vbrandl
@@ -23,13 +23,44 @@ updates:
       - dependabot
       - dependencies
 
-  - package-ecosystem: 'elm'
-    directory: '/'
+  - package-ecosystem: "elm"
+    directory: "/"
     schedule:
-      interval: 'daily'
+      interval: "daily"
     open-pull-requests-limit: 10
     assignees:
       - vbrandl
     labels:
       - dependabot
       - dependencies
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 10
+    assignees:
+      - vbrandl
+    labels:
+      - dependencies
+      - dependabot
+    groups:
+      minor:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: "rust-toolchain"
+    directory: "/"
+    schedule:
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 10
+    assignees:
+      - vbrandl
+    labels:
+      - dependencies
+      - dependabot
