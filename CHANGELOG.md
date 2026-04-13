@@ -11,3 +11,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `dangoslen/dependabot-changelog-helper` from 3 to 4 ([#102](https://github.com/vbrandl/yagcdn/pull/102))
 - Bump `elm-explorations/test` from 1.2.2 to 2.2.1 ([#126](https://github.com/vbrandl/yagcdn/pull/126))
 - Bump `elm/html` from 1.0.0 to 1.0.1 ([#127](https://github.com/vbrandl/yagcdn/pull/127))
+- Bump `elm-community/maybe-extra` from 5.2.0 to 5.3.0 ([#128](https://github.com/vbrandl/yagcdn/pull/128))
