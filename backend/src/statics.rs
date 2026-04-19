@@ -5,7 +5,7 @@ use clap::Parser;
 use std::{borrow::Cow, env, sync::LazyLock, time::Duration};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-pub(crate) const REDIRECT_AGE: Duration = Duration::from_secs(5 * 60);
+pub(crate) const REDIRECT_AGE: Duration = Duration::from_mins(5);
 pub(crate) const FAVICON: &[u8] = include_bytes!("../static/favicon32.png");
 pub(crate) static REDIRECT_AGE_SECS: LazyLock<u32> =
     LazyLock::new(|| u32::try_from(REDIRECT_AGE.as_secs()).expect("redirect age to high"));
