@@ -3,7 +3,7 @@ FROM node:alpine AS frontend
 WORKDIR /
 
 # install envsubst
-RUN apk add -U --upgrade --no-cache gettext && yarn global add elm uglify-js
+RUN apk add -U --upgrade --no-cache gettext && npm install --global elm uglify-js
 
 COPY ./frontend/build.sh ./build.sh
 COPY ./frontend/assets ./assets
