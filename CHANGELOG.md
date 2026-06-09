@@ -13,4 +13,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `elm/html` from 1.0.0 to 1.0.1 ([#127](https://github.com/vbrandl/yagcdn/pull/127))
 - Bump `elm-community/maybe-extra` from 5.2.0 to 5.3.0 ([#128](https://github.com/vbrandl/yagcdn/pull/128))
 - Bump `tokio` from 1.51.1 to 1.52.3 ([#129](https://github.com/vbrandl/yagcdn/pull/129), [#136](https://github.com/vbrandl/yagcdn/pull/136), [#137](https://github.com/vbrandl/yagcdn/pull/137))
-- Bump `rust-toolchain` from 1.94.1 to 1.96.0 ([#133](https://github.com/vbrandl/yagcdn/pull/133), [#132](https://github.com/vbrandl/yagcdn/pull/132), [#138](https://github.com/vbrandl/yagcdn/pull/138))
+- Bump `rust-toolchain` from 1.94.1 to 1.96.0 ([#133](https://github.com/vbrandl/yagcdn/pull/133), [#132](https://github.com/vbrandl/yagcdn/pull/132), [#138](https://github.com/vbrandl/yagcdn/pull/138), [#139](https://github.com/vbrandl/yagcdn/pull/139))
