@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+set -eux
+
 js="yagcdn.js"
 min="yagcdn.min.js"
 outdir="./output/"
