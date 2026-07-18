@@ -16,3 +16,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump `rust-toolchain` from 1.94.1 to 1.96.1 ([#133](https://github.com/vbrandl/yagcdn/pull/133), [#132](https://github.com/vbrandl/yagcdn/pull/132), [#138](https://github.com/vbrandl/yagcdn/pull/138), [#139](https://github.com/vbrandl/yagcdn/pull/139), [#146](https://github.com/vbrandl/yagcdn/pull/146), [#145](https://github.com/vbrandl/yagcdn/pull/145))
 - Bump `tracing-actix-web` from 0.7.21 to 0.7.22 ([#141](https://github.com/vbrandl/yagcdn/pull/141))
 - Bump `actix-web` from 4.13.0 to 4.14.0 ([#142](https://github.com/vbrandl/yagcdn/pull/142))
+- Bump `thiserror` from 2.0.18 to 2.0.19 ([#158](https://github.com/vbrandl/yagcdn/pull/158))
